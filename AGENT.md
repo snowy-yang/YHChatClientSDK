@@ -25,19 +25,19 @@
 
 ## 工具链
 
-- 依赖与虚拟环境用 uv 管理：`pyproject.toml` + `uv.lock`，Python 3.11 由 `.python-version` 固定。
+- 依赖与虚拟环境用 uv 管理：`pyproject.toml` + `uv.lock`，Python 3.12 由 `.python-version` 固定。
 - 改依赖用 `uv add` / `uv remove`，不要手改 `uv.lock`。
 - 静态检查与类型检查：
 
 ```bash
-uv sync                 # 同步 .venv（首次会装 Python 3.11）
+uv sync                 # 同步 .venv（首次会装 Python 3.12）
 uv run ruff check .     # lint
 uv run ruff format .    # format
 uv run pyright          # 类型检查
 ```
 
-- 配置都在 `pyproject.toml`：ruff 选 `E/F/I/UP/B/SIM/RUF`、行宽 120、`target-version = py311`，排除 `.venv` 与 `*.md`
-  （ruff 0.17 会格式化 Markdown 里的代码块，已有意关掉）；pyright 用 `standard` 模式。
+- 配置都在 `pyproject.toml`：ruff 选 `E/W/F/I/UP/B/SIM/C4/RUF/PERF/TCH/RET/PIE/ASYNC/LOG/G/PYI`、行宽 120、`target-version = py312`，排除 `.venv` 与 `*.md`
+  （ruff 0.17 会格式化 Markdown 里的代码块，已有意关掉）；pyright 用 `strict` 模式并对齐 `pythonVersion = 3.12`。
 
 ## 代码结构（v1.5）
 
@@ -55,7 +55,7 @@ uv run pyright          # 类型检查
 - 云湖返回 `code == 1` 视为成功，失败抛 `ValueError(resp["msg"])`；新代码保持这一风格。
 - 同步实现：`httpx.Client` + 线程池，暂不引入 `async` / `asyncio`。
 - SQLAlchemy 2.x 写法（`declarative_base`、`sessionmaker`），每个函数内 session 用完即 `close()`。
-- 最低 Python 3.11（用到了 `enum.StrEnum`）。
+- 最低 Python 3.12；优先用 3.12 起的语法（`type` 别名、PEP 695 泛型、`typing.override`、f-string 嵌套引号）。
 
 ## 验证方式
 

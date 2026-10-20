@@ -17,7 +17,8 @@
 
 ## 环境要求
 
-- Python ≥ 3.11（代码使用了 `enum.StrEnum`），版本由 `.python-version` 固定为 3.11
+- Python ≥ 3.12，版本由 `.python-version` 固定为 3.12
+- 依赖声明要求 3.12 起，以便使用 `type` 语句、PEP 695 泛型、`typing.override` 等新特性
 - 包管理与依赖：[uv](https://docs.astral.sh/uv/)，依赖声明在 `pyproject.toml`，用 `uv sync` 安装
 
 ## 获取代码
@@ -120,7 +121,7 @@ run(app, host="0.0.0.0", port=8080)
 ├── LICENSE          # MPL-2.0
 ├── README.md
 ├── pyproject.toml   # 依赖声明 + ruff / pyright 配置
-├── .python-version  # 固定 Python 3.11
+├── .python-version  # 固定 Python 3.12
 ├── .gitignore
 └── uv.lock          # uv 锁文件
 ```

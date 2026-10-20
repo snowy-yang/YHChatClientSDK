@@ -3,7 +3,7 @@ name = "yhchat-client-sdk"
 version = "0.1.0"
 description = "云湖（YHChat）非官方 Python SDK"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "MPL-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "hhhhhge", email = "2173376743@qq.com" }]
@@ -27,14 +27,31 @@ package = false
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py312"
 extend-exclude = [".venv", "*.md"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF", "PERF", "TCH", "RET", "PIE", "ASYNC", "LOG", "G", "PYI"]
+ignore = ["E501"]
+
+[tool.ruff.lint.pyupgrade]
+# 运行时注解也按 py312 现代化（pydantic v2 支持 PEP 604/585）
+keep-runtime-typing = false
+
+[tool.ruff.lint.isort]
+known-first-party = ["yhchat"]
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.pyright]
 include = ["."]
 exclude = [".venv", "**/__pycache__"]
-pythonVersion = "3.11"
-typeCheckingMode = "standard"
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+enableTypeIgnoreComments = false
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+deprecateTypingAliases = true
+reportUnnecessaryTypeIgnoreComment = "error"
