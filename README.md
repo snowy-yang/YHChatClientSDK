@@ -205,9 +205,15 @@ async with YHChatClient("机器人 token") as client:
 - 未实现的动作按协议返回 **404**（不是 501），未知动作同样 404。
 
 已支撑：`message.create/get/list/update/delete`、`login.get`、`channel.get`、
-`guild.get`、`channel.list(guild_id=...)`。
-待接入：`guild.list`、`guild.member.*`、`user.get` 的资料、`friend.list` —— 它们依赖
-`v1/*` 端点，SDK 补齐后填 `YHChatBackend` 即可，协议层不用改。
+`channel.list`、`guild.get/list`、`guild.member.get/list`、`user.get`、`friend.list`。
+映射关系：
+
+- `guild.list` → `bot/join-group-list`（机器人加入的群，`next_token` 是页码）；
+- `guild.get` → `group/info`；`guild.member.*` → `group/list-member`（按 `keywords` 过滤单成员）；
+- `user.get` → `user/get-user`（`4402`/`7100` 转成 404）；`friend.list` → `friend/address-book-list`
+  （只取 `chat_type == user` 的分组，`next_token` 用返回的 `md5`）；
+- `channel.list()` 不带 `guild_id` 时用 `conversation/list` 兜底——云湖没有跨群频道列表端点；
+- 群成员权限级别塞进 `Member.roles[0].id`，没有真实角色体系。
 
 字段假设（云湖文档没有对应说明，属于推断，已在代码注释标注）：
 
@@ -291,6 +297,10 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 ```
 
 ## 已知不一致
+
+- `/v1/user/info`：`v1/user.md` 写的是 **protobuf**（`UserInfo`），`web/v1/user.md` 写的是
+  **JSON**，同一路径两种格式。SDK 目前实现的是 JSON 版本（`client.v1.web_user.info`），
+  protobuf 字段已备好（`full.proto` 的 `UserInfo` 未加），等有 token 实测后再定。
 
 - 文档把按钮 `actionType` 的 1/2 注释写反了；本 SDK 按示例语义处理：**1=跳转（带 url）、2=复制（带 value）**。
 - `/bot/messages` 文档用 `message-id` 查询参数，旧版实现用的是 `msg-id`，本 SDK 按文档实现，待用真实 token 验证。

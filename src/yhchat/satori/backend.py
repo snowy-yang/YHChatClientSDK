@@ -7,14 +7,20 @@
 from typing import Protocol, runtime_checkable
 
 from ..client import YHChatClient
+from ..errors import APIError
 from ..models import BaseSegment, FileSegment, ImageSegment, ReceivedMessage, TextSegment, VideoSegment
+from ..proto._pb import full_pb2
 from .elements import At, Br, File, Image, Quote, SatoriElement, Text, Video, parse, serialize
-from .models import Channel, Friend, Guild, Login, Member, MessageObject, Page, User, now_millis
+from .models import Channel, Friend, Guild, Login, Member, MessageObject, Page, Role, User, now_millis
 
 CHANNEL_TEXT = 0
 CHANNEL_DIRECT = 1
 
 _MEDIA_LIMITATION = "云湖不支持该消息类型"
+_PAGE_SIZE = 50
+"""分页大小：Satori 的 next_token 不透明，这里直接放页码，配合云湖的 page/size。"""
+_USER_BANNED_CODES = {4402, 7100}
+"""``user/get-user`` 的分页错误码：用户不存在 / 被封禁。"""
 
 
 class SatoriUnsupportedError(NotImplementedError):
@@ -122,9 +128,9 @@ class ChannelRegistry:
 class YHChatBackend:
     """用 ``YHChatClient`` 实现 Satori 聊天子集。
 
-    已支撑：``message.*`` / ``login.get`` / ``channel.get`` / ``guild.get`` /
-    ``channel.list(guild_id=...)``。其余动作依赖尚未接入的 ``v1/*`` 端点，抛
-    :class:`SatoriUnsupportedError`（HTTP 404），接完后补实现。
+    已支撑：``message.*`` / ``login.get`` / ``channel.*`` / ``guild.*`` /
+    ``guild.member.*`` / ``user.get`` / ``friend.list``。云湖没有跨群频道列表，
+    ``channel.list()`` 用最近会话列表代替；群列表来自「机器人加入的群」。
     """
 
     def __init__(
@@ -220,34 +226,106 @@ class YHChatBackend:
         return self._channel(channel_id)
 
     async def channel_list(self, guild_id: str | None) -> Page[Channel]:
-        """群内只有「群」这一层频道；不带 guild_id 时需要群列表，暂不支持。"""
-        if guild_id is None:
-            raise SatoriUnsupportedError("channel.list 需要 guild_id：云湖没有跨群频道列表端点")
-        return Page(data=[Channel(id=guild_id, type=CHANNEL_TEXT, name=guild_id)])
+        """群内只有「群」这一层频道；不带 ``guild_id`` 时用最近会话列表兜底。
+
+        云湖没有「跨群频道列表」端点，Satori 的这个语义只能近似：会话列表里的每个
+        聊天映射成一个频道，群聊是 TEXT，私聊/机器人是 DIRECT。
+        """
+        if guild_id is not None:
+            return Page(data=[Channel(id=guild_id, type=CHANNEL_TEXT, name=guild_id)])
+        response = await self._client.v1.proto.conversation.list_conversations(
+            full_pb2.ConversationListRequest()
+        )
+        channels = [
+            Channel(
+                id=item.chat_id,
+                type=_channel_type(item.chat_type),
+                name=item.name or item.remark or item.chat_id,
+            )
+            for item in response.data
+        ]
+        return Page(data=channels)
 
     async def guild_get(self, guild_id: str) -> Guild:
         """取群组（云湖群聊即 guild）。"""
-        return Guild(id=guild_id, name=guild_id)
+        response = await self._client.v1.proto.group.info(full_pb2.GroupInfoRequest(group_id=guild_id))
+        group = response.data
+        if not group.group_id:
+            raise SatoriNotFoundError(f"群不存在: {guild_id}")
+        return Guild(id=group.group_id, name=group.name or group.group_id, avatar=group.avatar_url or None)
 
     async def guild_list(self, next_token: str | None) -> Page[Guild]:
-        """群列表依赖未接入的「机器人所在群」端点。"""
-        raise SatoriUnsupportedError("guild.list 依赖尚未接入的群列表端点")
+        """机器人加入的群聊列表；``next_token`` 是页码。"""
+        page = int(next_token) if next_token else 1
+        response = await self._client.v1.proto.bot.join_group_list(
+            full_pb2.JoinGroupListRequest(
+                bot_id=self._self_id,
+                data=full_pb2.JoinGroupListRequest.Data(size=_PAGE_SIZE, page=page),
+            )
+        )
+        guilds = [
+            Guild(id=group.id, name=group.name or group.id, avatar=group.avatar_url or None)
+            for group in response.group
+        ]
+        return Page(data=guilds, next=str(page + 1) if len(guilds) >= _PAGE_SIZE else None)
 
     async def guild_member_get(self, guild_id: str, user_id: str) -> Member:
-        """群成员信息依赖未接入的群成员端点。"""
-        raise SatoriUnsupportedError("guild.member.get 依赖尚未接入的群成员端点")
+        """按用户 ID 在群成员里查（云湖没有单个成员端点，用 keywords 过滤）。"""
+        response = await self._client.v1.proto.group.list_member(
+            full_pb2.ListMemberRequest(
+                group_id=guild_id,
+                keywords=user_id,
+                data=full_pb2.ListMemberRequest.Data(size=_PAGE_SIZE, page=1),
+            )
+        )
+        for item in response.user:
+            if item.user_info.user_id == user_id:
+                return _member_of(item)
+        raise SatoriNotFoundError(f"群 {guild_id} 里没有成员 {user_id}")
 
     async def guild_member_list(self, guild_id: str, next_token: str | None) -> Page[Member]:
-        """群成员列表依赖未接入的群成员端点。"""
-        raise SatoriUnsupportedError("guild.member.list 依赖尚未接入的群成员端点")
+        """群成员列表；``next_token`` 是页码。"""
+        page = int(next_token) if next_token else 1
+        response = await self._client.v1.proto.group.list_member(
+            full_pb2.ListMemberRequest(
+                group_id=guild_id,
+                data=full_pb2.ListMemberRequest.Data(size=_PAGE_SIZE, page=page),
+            )
+        )
+        members = [_member_of(item) for item in response.user]
+        return Page(data=members, next=str(page + 1) if len(members) >= _PAGE_SIZE else None)
 
     async def user_get(self, user_id: str) -> User:
-        """用户资料依赖未接入的用户端点，先只回 ID。"""
-        return User(id=user_id)
+        """用户资料；用户不存在/被封禁时转成 :class:`SatoriNotFoundError`。"""
+        try:
+            response = await self._client.v1.proto.user.get_user(full_pb2.GetUserRequest(id=user_id))
+        except APIError as exc:
+            if exc.code in _USER_BANNED_CODES:
+                raise SatoriNotFoundError(f"用户不可用: {user_id}") from exc
+            raise
+        user = response.data
+        return User(
+            id=user.id or user_id,
+            name=user.name or None,
+            nick=user.remark_info.remark_name or None,
+            avatar=user.avatar_url or None,
+        )
 
     async def friend_list(self, next_token: str | None) -> Page[Friend]:
-        """好友列表依赖未接入的好友端点。"""
-        raise SatoriUnsupportedError("friend.list 依赖尚未接入的好友端点")
+        """好友列表（通讯录里 ``chat_type == user`` 的分组）；``next_token`` 是 ``md5``。"""
+        response = await self._client.v1.proto.friend.address_book_list(
+            full_pb2.AddressBookListRequest(md5=next_token or "")
+        )
+        friends = [
+            Friend(
+                user=User(id=entry.chat_id, name=entry.name or None, avatar=entry.avatar_url or None),
+                nick=entry.remark or None,
+            )
+            for group in response.data
+            if group.chat_type == full_pb2.ChatType.user
+            for entry in group.data
+        ]
+        return Page(data=friends, next=response.md5 or None)
 
     def _channel(self, channel_id: str) -> Channel:
         return Channel(id=channel_id, type=self.registry.channel_type(channel_id), name=channel_id)
@@ -314,3 +392,18 @@ def render_message_content(message: ReceivedMessage) -> str:
     else:
         elements.append(Text(message.content.text or ""))
     return serialize(elements)
+
+
+def _channel_type(chat_type: int) -> int:
+    """云湖会话类型 → Satori 频道类型。"""
+    return CHANNEL_TEXT if chat_type == full_pb2.ChatType.group else CHANNEL_DIRECT
+
+
+def _member_of(item: full_pb2.ListMemberResponse.User) -> Member:
+    """群成员 → Satori ``Member``；云湖的权限级别塞进角色 ID，便于客户端区分。"""
+    info = item.user_info
+    user = User(id=info.user_id, name=info.name or None, avatar=info.avatar_url or None, is_bot=False)
+    roles: list[Role] = []
+    if item.permission_level:
+        roles.append(Role(id=str(item.permission_level)))
+    return Member(user=user, nick=info.name or None, joined_at=None, roles=roles)
