@@ -42,6 +42,15 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - **错误**：`APIError(code, message, endpoint=...)`；缺字段一律 `TransportError`，不要用 `KeyError`/`AssertionError`。
 - **消息记录**：发送/接收到的消息登记进 `MessageRegistry`（LRU，进程内），编辑/撤回据此补全会话信息。
 
+## gRPC 约定
+
+- proto 在 `proto/yhchat/grpc/_pb/yhchat.proto`；路径特意与生成目录对齐，生成的 import 才是 `yhchat.grpc._pb.yhchat_pb2`。
+- 改 proto 后跑 `uv run python tools/gen_proto.py`；`src/yhchat/grpc/_pb/` 是生成物，**不要手改**，且被 ruff/pyright 排除。
+- 生成的 `_grpc.py` 没有类型标注，所以客户端不用生成的 stub，而是 `channel.unary_unary(...)` +
+  `grpc.aio.UnaryUnaryMultiCallable[...]` 自己建强类型调用器（见 `grpc/client.py`）。
+- 服务端用生成模块里的 `add_YHChatServicer_to_server` 注册（唯一的 `pyright: ignore` 点），业务方法全部委托给核心 SDK。
+- RPC 方法名保持 proto 的 CamelCase；错误统一经 `_grpc_errors` 映射成 gRPC 状态码。
+
 ## 新端点接入流程
 
 1. 在 `docs/ENDPOINTS.md` 里找到目标端点（清单由 `uv run python tools/gen_endpoints.py` 生成）；

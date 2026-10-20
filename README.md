@@ -12,7 +12,7 @@
 | 图片 / 视频 / 文件上传（文档未收录，云端实际提供） | 已实现 |
 | 文档站 `v1/*`、`web/v1/*` 的其余端点（共 242 个） | 规划中 |
 | Satori v1 协议端（聊天子集） | 规划中 |
-| gRPC 层 | 规划中 |
+| gRPC 层（Send/BatchSend/SendStream/Edit/Recall/ListMessages/Upload） | 已实现 |
 | HTTP/2 ASGI 服务与 CLI | 规划中 |
 
 端点覆盖清单见 [`docs/ENDPOINTS.md`](docs/ENDPOINTS.md)，由 `tools/gen_endpoints.py` 从文档站生成，是覆盖度的唯一起点。
@@ -86,6 +86,46 @@ for message in page.messages:
 payload = await client.call("POST", "/open-apis/v1/bot/send", json={"recvId": "群 ID", "recvType": "group"})
 ```
 
+## gRPC
+
+gRPC 是可选依赖（`uv sync --extra grpc`），只做传输与类型约束，业务逻辑仍在核心 SDK。
+
+```python
+import grpc
+
+from yhchat import YHChatClient
+from yhchat.grpc import YHChatRpcClient, serve
+from yhchat.grpc._pb import yhchat_pb2
+```
+
+服务端：
+
+```python
+async with YHChatClient("机器人 token") as client:
+    server, port = await serve(client, host="127.0.0.1", port=50051)
+    await server.wait_for_termination()
+```
+
+客户端：
+
+```python
+async with grpc.aio.insecure_channel(f"127.0.0.1:{port}") as channel:
+    stub = YHChatRpcClient(channel)
+    reply = await stub.send(
+        yhchat_pb2.SendRequest(
+            recv_type="group",
+            recv_id="群 ID",
+            content=yhchat_pb2.Content(type=yhchat_pb2.CONTENT_TYPE_TEXT, text="你好"),
+        )
+    )
+    print(reply.message.msg_id)
+```
+
+- 服务定义：`proto/yhchat/grpc/_pb/yhchat.proto`，用 `uv run python tools/gen_proto.py` 重新生成；
+  生成代码在 `src/yhchat/grpc/_pb/`，不参与 lint 与类型检查，不要手改。
+- 错误映射：`APIError` → `FAILED_PRECONDITION`；`TransportError` / 参数问题 → `INVALID_ARGUMENT`。
+- 流式：`SendStream` 是客户端流，首块带 `recv_type` / `recv_id` / `content_type`，后续只带 `chunk`。
+
 ## 错误处理
 
 - `APIError`：云湖返回 `code != 1` 或 HTTP 4xx/5xx，带 `code` / `message` / `endpoint`。
@@ -100,6 +140,7 @@ uv run ruff format .                 # format
 uv run pyright                       # 类型检查（strict）
 uv run pytest -q                     # 测试
 uv run python tools/gen_endpoints.py # 重新生成端点清单
+uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动后）
 ```
 
 `tools/gen_endpoints.py` 默认读取 `~/Default/yhchatAPI/src/api`（文档站浅克隆），可用 `--docs` 指定。
@@ -114,8 +155,11 @@ uv run python tools/gen_endpoints.py # 重新生成端点清单
 │   ├── errors.py         # APIError / TransportError
 │   ├── records.py        # msgId → 会话信息 的 LRU 缓存
 │   ├── models/           # pydantic 模型与消息段
-│   └── api/bot.py        # /open-apis/v1 机器人接口
+│   ├── api/bot.py        # /open-apis/v1 机器人接口
+│   └── grpc/             # gRPC 门面：convert / client / server / _pb（生成）
+├── proto/yhchat/grpc/_pb/yhchat.proto
 ├── tools/gen_endpoints.py
+├── tools/gen_proto.py
 ├── docs/ENDPOINTS.md     # 生成的端点清单（含覆盖状态）
 ├── tests/
 ├── pyproject.toml        # 依赖 + ruff / pyright / pytest 配置

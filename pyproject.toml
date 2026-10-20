@@ -50,11 +50,12 @@ filterwarnings = ["error"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-extend-exclude = [".venv", "*.md"]
+extend-exclude = [".venv", "*.md", "src/yhchat/grpc/_pb"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF", "PERF", "TCH", "RET", "PIE", "ASYNC", "LOG", "G", "PYI"]
-ignore = ["E501", "RUF001", "RUF002", "RUF003"]
+# ASYNC109 要求用 asyncio.timeout 代替 timeout 参数；gRPC 调用需要原样透传 deadline，这里不适用
+ignore = ["E501", "RUF001", "RUF002", "RUF003", "ASYNC109"]
 
 [tool.ruff.lint.pyupgrade]
 # 运行时注解也按 py312 现代化（pydantic v2 支持 PEP 604/585）
@@ -68,7 +69,7 @@ docstring-code-format = true
 
 [tool.pyright]
 include = ["src", "tests", "tools"]
-exclude = [".venv", "**/__pycache__"]
+exclude = [".venv", "**/__pycache__", "src/yhchat/grpc/_pb"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 enableTypeIgnoreComments = false

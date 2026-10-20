@@ -4,6 +4,10 @@ __pycache__/
 *.py[cod]
 .ruff_cache/
 
+# 构建产物
+build/
+dist/
+
 # 运行时产物
 message.db
 *.log

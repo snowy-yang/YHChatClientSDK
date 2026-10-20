@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+// 云湖 SDK 的 gRPC 门面：只做传输与类型约束，业务逻辑仍在核心 SDK 里。
+// 生成命令：uv run python tools/gen_proto.py
+
+package yhchat.v1;
+
+// 消息内容类型，对应云湖 open-apis 的 contentType。
+enum ContentType {
+  CONTENT_TYPE_UNSPECIFIED = 0;
+  CONTENT_TYPE_TEXT = 1;
+  CONTENT_TYPE_IMAGE = 2;
+  CONTENT_TYPE_VIDEO = 3;
+  CONTENT_TYPE_FILE = 4;
+  CONTENT_TYPE_MARKDOWN = 5;
+  CONTENT_TYPE_HTML = 6;
+}
+
+message Button {
+  string text = 1;
+  // 1=跳转（配 url），2=复制（配 value）。云湖文档注释写反了，以示例为准。
+  int32 action_type = 2;
+  optional string url = 3;
+  optional string value = 4;
+}
+
+message ButtonGroup {
+  repeated Button buttons = 1;
+}
+
+// 发送用的消息内容，按 type 填对应字段。
+message Content {
+  ContentType type = 1;
+  optional string text = 2;
+  // @ 的对象 ID，逗号分隔（云湖用字符串而不是数组）。
+  optional string at = 3;
+  repeated ButtonGroup buttons = 4;
+  optional string image_key = 5;
+  optional string video_key = 6;
+  optional string file_key = 7;
+}
+
+message MessageInfo {
+  string msg_id = 1;
+  string recv_id = 2;
+  string recv_type = 3;
+}
+
+message SendRequest {
+  string recv_type = 1;
+  string recv_id = 2;
+  Content content = 3;
+  optional string parent_id = 4;
+}
+
+message SendReply {
+  MessageInfo message = 1;
+}
+
+message BatchSendRequest {
+  repeated string recv_ids = 1;
+  string recv_type = 2;
+  Content content = 3;
+  optional string parent_id = 4;
+}
+
+message BatchSendReply {
+  int32 success_count = 1;
+  repeated MessageInfo success_list = 2;
+}
+
+// 流式发送：客户端逐块推文本，服务端收完后返回一条消息信息。
+message SendStreamRequest {
+  string recv_type = 1;
+  string recv_id = 2;
+  // text 或 markdown
+  string content_type = 3;
+  bytes chunk = 4;
+}
+
+message EditRequest {
+  string msg_id = 1;
+  Content content = 2;
+  optional string recv_id = 3;
+  optional string recv_type = 4;
+}
+
+message EditReply {
+  int32 success_count = 1;
+}
+
+message RecallRequest {
+  string msg_id = 1;
+  optional string chat_id = 2;
+  optional string chat_type = 3;
+}
+
+message RecallReply {}
+
+message ListMessagesRequest {
+  string chat_id = 1;
+  string chat_type = 2;
+  optional string message_id = 3;
+  int32 before = 4;
+  int32 after = 5;
+}
+
+message ReceivedMessage {
+  string msg_id = 1;
+  optional string parent_id = 2;
+  string sender_id = 3;
+  string sender_type = 4;
+  optional string sender_nickname = 5;
+  string content_type = 6;
+  optional string text = 7;
+  repeated string at = 8;
+  repeated ButtonGroup buttons = 9;
+  optional int64 send_time = 10;
+}
+
+message ListMessagesReply {
+  repeated ReceivedMessage messages = 1;
+  int32 total = 2;
+}
+
+message UploadRequest {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_IMAGE = 1;
+    KIND_VIDEO = 2;
+    KIND_FILE = 3;
+  }
+  Kind kind = 1;
+  string filename = 2;
+  optional string mime_type = 3;
+  bytes data = 4;
+}
+
+message UploadReply {
+  string key = 1;
+}
+
+service YHChat {
+  rpc Send(SendRequest) returns (SendReply);
+  rpc BatchSend(BatchSendRequest) returns (BatchSendReply);
+  rpc SendStream(stream SendStreamRequest) returns (SendReply);
+  rpc Edit(EditRequest) returns (EditReply);
+  rpc Recall(RecallRequest) returns (RecallReply);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesReply);
+  rpc Upload(UploadRequest) returns (UploadReply);
+}
