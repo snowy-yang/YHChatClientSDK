@@ -6,6 +6,8 @@ from typing import Any, Self
 import httpx
 
 from .api.bot import BotAPI
+from .api.v1 import V1API
+from .errors import YHChatError
 from .records import MessageRegistry
 from .transport import DEFAULT_BASE_URL, HttpTransport
 
@@ -23,12 +25,21 @@ class YHChatClient:
         self,
         token: str,
         *,
+        user_token: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
         timeout: float = 15.0,
         http2: bool = True,
         trust_env: bool = True,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
+        self._base_url = base_url
+        self._timeout = timeout
+        self._http2 = http2
+        self._trust_env = trust_env
+        self._raw_transport = transport
+        self._user_token = user_token
+        self._v1_http: HttpTransport | None = None
+        self._v1: V1API | None = None
         self._http = HttpTransport(
             token=token,
             base_url=base_url,
@@ -46,6 +57,27 @@ class YHChatClient:
     def token(self) -> str:
         """当前机器人 token。"""
         return self._http.token
+
+    @property
+    def v1(self) -> V1API:
+        """用户接口（``v1/*``）：token 放请求头，需要构造时传 ``user_token``。
+
+        首次访问才创建连接池；没传 ``user_token`` 时抛 :class:`~yhchat.errors.YHChatError`。
+        """
+        if self._v1 is None:
+            if self._user_token is None:
+                raise YHChatError("调用 v1 接口需要 user_token：YHChatClient(token, user_token=...)")
+            self._v1_http = HttpTransport(
+                token=self._user_token,
+                base_url=self._base_url,
+                auth="header",
+                timeout=self._timeout,
+                http2=self._http2,
+                trust_env=self._trust_env,
+                transport=self._raw_transport,
+            )
+            self._v1 = V1API(self._v1_http)
+        return self._v1
 
     async def call(
         self,
@@ -67,8 +99,10 @@ class YHChatClient:
         )
 
     async def aclose(self) -> None:
-        """关闭底层连接池。"""
+        """关闭底层连接池（含 v1 的连接池）。"""
         await self._http.aclose()
+        if self._v1_http is not None:
+            await self._v1_http.aclose()
 
     async def __aenter__(self) -> Self:
         return self

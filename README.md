@@ -86,6 +86,24 @@ for message in page.messages:
 payload = await client.call("POST", "/open-apis/v1/bot/send", json={"recvId": "群 ID", "recvType": "group"})
 ```
 
+## v1 用户接口
+
+`v1/*` 把**用户 token 放请求头**（`open-apis` 是查询参数），因此单独挂 `client.v1`：
+
+```python
+async with YHChatClient("机器人 token", user_token="用户 token") as client:
+    result = await client.v1.community.posts_create({"title": "标题", "content": "正文"})
+    print(result["data"])
+```
+
+- 分组与文档一一对应：`client.v1.community`、`.user`、`.group`、`.web_user` ……（37 组、205 个 JSON 端点）。
+- 方法名由路径生成（`/v1/community/posts/create` → `posts_create`）；**返回原始 JSON 响应**（含 `code/msg/data`），
+  未逐字段建模；参数用 `body=...` 透传，GET 用 `params=...`。
+- 生成器：`uv run python tools/gen_v1_api.py`（读 `~/Default/yhchatAPI/src/api`，写 `src/yhchat/api/v1/`，
+  并把已实现路径合并进 `docs/implemented.txt`）。生成物勿手改，改规则改生成器。
+- 未实现的 31 个端点（protobuf 收发 / XML / 文档缺前导斜杠）在 `docs/v1_pending.md`；
+  覆盖率见 `docs/ENDPOINTS.md`。
+
 ## gRPC
 
 gRPC 是可选依赖（`uv sync --extra grpc`），只做传输与类型约束，业务逻辑仍在核心 SDK。

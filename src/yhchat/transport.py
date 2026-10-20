@@ -1,7 +1,7 @@
 """HTTP 传输层：统一注入 token、解析 ``{code, msg, data}`` 包装、映射异常。"""
 
 from collections.abc import AsyncIterable, Mapping
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import httpx
 
@@ -16,7 +16,8 @@ _SUCCESS_CODE = 1
 class HttpTransport:
     """对 :class:`httpx.AsyncClient` 的薄封装。
 
-    - 所有请求自动带上 ``token`` 查询参数（云湖的 bot 接口约定）；
+    - 默认把 ``token`` 放在查询参数里（``/open-apis/v1`` 的 bot 约定）；
+      ``v1/*`` 的用户接口改放请求头（``auth="header"``）；
     - 所有响应按 ``{code, msg, data}`` 解析，``code != 1`` 抛 :class:`APIError`；
     - 网络层失败统一抛 :class:`TransportError`。
     """
@@ -26,12 +27,16 @@ class HttpTransport:
         *,
         token: str,
         base_url: str = DEFAULT_BASE_URL,
+        auth: Literal["query", "header"] = "query",
+        token_name: str = "token",
         timeout: float = 15.0,
         http2: bool = True,
         trust_env: bool = True,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self._token = token
+        self._auth = auth
+        self._token_name = token_name
         self._client = httpx.AsyncClient(
             base_url=base_url,
             timeout=timeout,
@@ -43,8 +48,19 @@ class HttpTransport:
 
     @property
     def token(self) -> str:
-        """当前机器人 token。"""
+        """当前 token。"""
         return self._token
+
+    def _auth_headers(self, headers: Mapping[str, str] | None) -> dict[str, str]:
+        merged = dict(headers or {})
+        if self._auth == "header":
+            merged[self._token_name] = self._token
+        return merged
+
+    def _auth_params(self, params: Mapping[str, Any] | None) -> dict[str, Any] | None:
+        if self._auth != "query":
+            return dict(params) if params else None
+        return self._with_token(params)
 
     async def aclose(self) -> None:
         """关闭底层连接池。"""
@@ -66,11 +82,11 @@ class HttpTransport:
             response = await self._client.request(
                 method,
                 path,
-                params=self._with_token(params),
+                params=self._auth_params(params),
                 json=json,
                 content=content,
                 files=files,
-                headers=headers,
+                headers=self._auth_headers(headers),
             )
         except httpx.HTTPError as exc:  # 超时、连接失败、协议错误
             raise TransportError(f"{method} {path} 请求失败: {exc}") from exc
@@ -86,12 +102,12 @@ class HttpTransport:
         headers: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
         """以分块传输方式发送流式请求体，返回响应体。"""
-        request_headers = {"Transfer-Encoding": "chunked", **(headers or {})}
+        request_headers = {"Transfer-Encoding": "chunked", **self._auth_headers(headers)}
         try:
             async with self._client.stream(
                 method,
                 path,
-                params=self._with_token(params),
+                params=self._auth_params(params),
                 content=chunks,
                 headers=request_headers,
             ) as response:

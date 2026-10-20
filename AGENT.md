@@ -63,6 +63,18 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - 测试：HTTP 用 `httpx.ASGITransport`，WS 用 `starlette.testclient.TestClient`
   （starlette 1.x 需要 `httpx2`，已在 dev 依赖里）。
 
+## v1 端点约定
+
+- 文档仓库（`~/Default/yhchatAPI`）是 **GPLv3**：只取协议事实（路径、方法、字段名、收发格式），
+  不要复制文档/注释原文；proto 也按字段号手写最小子集。
+- `v1/*` 的 token 在**请求头 `token`**，`open-apis` 在查询参数；由 `HttpTransport(auth="query"|"header")` 区分，
+  客户端里 `client.bot` 用前者、`client.v1` 用后者（需要 `user_token`）。
+- `src/yhchat/api/v1/` 全部由 `tools/gen_v1_api.py` 生成，**不要手改**；新增/修正端点先改生成规则再重跑：
+  `uv run python tools/gen_v1_api.py && uv run python tools/gen_endpoints.py`。
+- 生成的方法是「路径 + 原始 JSON 透传」（未建模），所以新增端点的测试至少覆盖：路径、header token、
+  body/params 透传、`code != 1` 抛 `APIError`。
+- protobuf/XML/外部地址端点一律跳过并写进 `docs/v1_pending.md`，不要生成半成品。
+
 ## 服务与 CLI 约定
 
 - `server/app.py` 只做装配：`/health`、`/webhook`、`Mount("/satori", ...)`；把云湖回调翻译成 Satori 事件在
