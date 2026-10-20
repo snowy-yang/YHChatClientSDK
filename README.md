@@ -10,8 +10,8 @@
 | --- | --- |
 | `/open-apis/v1` 机器人接口（发送/批量/流式/编辑/撤回/消息列表） | 已实现 |
 | 图片 / 视频 / 文件上传（文档未收录，云端实际提供） | 已实现 |
-| 文档站 `v1/*`、`web/v1/*` 的其余端点（共 242 个） | 规划中 |
-| Satori v1 协议端（聊天子集：HTTP RPC + WebSocket） | 部分实现，见下 |
+| 文档站 242 个端点（`v1/*`、`web/v1/*`，含 protobuf 与 XML 端点） | **已实现 242/242** |
+| Satori v1 协议端（聊天子集：HTTP RPC + WebSocket） | 已实现聊天子集，未支持的 action 返回 404 |
 | gRPC 层（Send/BatchSend/SendStream/Edit/Recall/ListMessages/Upload） | 已实现 |
 | HTTP/2 ASGI 服务与 CLI（webhook 接收 + Satori 挂载） | 已实现 |
 
