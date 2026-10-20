@@ -16,12 +16,28 @@
 
 | 分支 | 用途 |
 | --- | --- |
-| `main` | 文档、许可证与发布准备，不放实现代码 |
+| `main` | 文档、许可证、工具链配置（`pyproject.toml` / ruff / pyright），不放实现代码 |
 | `v1.5` | 新版实现（`message.py` / `openapi.py` / `subscription.py`），日常开发 |
 | `v1` | 旧版实现，只做必要修复 |
 
 - 实现代码的改动提交到 `v1.5`，不要顺手塞进 `main` 的文档提交里。
 - `main` 的历史被重写过（首个提交是许可证与 README），再次改写前先跟用户确认。
+
+## 工具链
+
+- 依赖与虚拟环境用 uv 管理：`pyproject.toml` + `uv.lock`，Python 3.11 由 `.python-version` 固定。
+- 改依赖用 `uv add` / `uv remove`，不要手改 `uv.lock`。
+- 静态检查与类型检查：
+
+```bash
+uv sync                 # 同步 .venv（首次会装 Python 3.11）
+uv run ruff check .     # lint
+uv run ruff format .    # format
+uv run pyright          # 类型检查
+```
+
+- 配置都在 `pyproject.toml`：ruff 选 `E/F/I/UP/B/SIM/RUF`、行宽 120、`target-version = py311`，排除 `.venv` 与 `*.md`
+  （ruff 0.17 会格式化 Markdown 里的代码块，已有意关掉）；pyright 用 `standard` 模式。
 
 ## 代码结构（v1.5）
 
@@ -43,16 +59,24 @@
 
 ## 验证方式
 
-- 仓库没有测试套件、没有 CI，也还没有 `pyproject.toml`，所以不要声称"已测试"。
-- 冒烟检查（先装依赖 `pydantic httpx sqlalchemy pyee bottle`）：
-  `python -c "import message, openapi, subscription"`；注意导入 `message` 会在当前工作目录创建 `message.db`。
+- 仓库没有测试套件、没有 CI，所以不要声称"已测试"。
+- 提交前至少跑通 `uv run ruff check .` 与 `uv run pyright`。
+- 冒烟检查：`uv run python -c "import message, openapi, subscription"`（需要实现代码在工作区里）；
+  注意导入 `message` 会在当前工作目录创建 `message.db`。
 - 真实接口验证需要机器人 token 和可公网访问的回调地址，只能手工做。
 
 ## 提交与安全
 
 - 提交信息用中文，一次提交做一件事。
-- 不要提交 token、`message.db`、日志；仓库目前没有 `.gitignore`，新增文件时留意。
+- 不要提交 token、`message.db`、日志；`.gitignore` 已排除 `.venv/`、`__pycache__/`、`.ruff_cache/`、`message.db`。
+- `uv.lock` 要提交，`.venv/` 不提交。
 - 涉及真实机器人调用时先在测试群验证，避免向用户群发消息。
+
+## 参考资料
+
+- 云湖 API 文档站：<https://github.com/snowy-yang/yhchatAPI>（TypeScript + VuePress，接口正文在 `src/api/**/*.md`，
+  另有 `src/full.proto`）。本机参考副本在仓库外的 `~/Default/yhchatAPI`，**不要**接入本仓库或复制其文件进来。
+- 云湖官网：<https://www.yhchat.com/>
 
 ## 已知问题与待办
 

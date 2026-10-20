@@ -1,0 +1,14 @@
+# uv / Python
+.venv/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+
+# 运行时产物
+message.db
+*.log
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store

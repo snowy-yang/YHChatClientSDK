@@ -1,0 +1,40 @@
+[project]
+name = "yhchat-client-sdk"
+version = "0.1.0"
+description = "云湖（YHChat）非官方 Python SDK"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "hhhhhge", email = "2173376743@qq.com" }]
+dependencies = [
+    "bottle>=0.13",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pyee>=12.0",
+    "sqlalchemy>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.400",
+    "ruff>=0.14",
+]
+
+[tool.uv]
+# 当前是脚本式布局（message.py / openapi.py / subscription.py），暂不作为可安装包构建
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pyright]
+include = ["."]
+exclude = [".venv", "**/__pycache__"]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"

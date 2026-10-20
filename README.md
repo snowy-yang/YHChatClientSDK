@@ -17,19 +17,30 @@
 
 ## 环境要求
 
-- Python ≥ 3.11（代码使用了 `enum.StrEnum`）
-- 依赖当前未写进包元数据，需要手动安装：
-
-```bash
-pip install pydantic httpx sqlalchemy pyee bottle
-```
+- Python ≥ 3.11（代码使用了 `enum.StrEnum`），版本由 `.python-version` 固定为 3.11
+- 包管理与依赖：[uv](https://docs.astral.sh/uv/)，依赖声明在 `pyproject.toml`，用 `uv sync` 安装
 
 ## 获取代码
 
 ```bash
-git clone -b v1.5 https://github.com/snowy-yang/YHChatClientSDK.git
+git clone https://github.com/snowy-yang/YHChatClientSDK.git
 cd YHChatClientSDK
+uv sync
 ```
+
+实现代码目前在 `v1.5` 分支（`git switch v1.5`），`main` 分支存放文档与发布准备。
+
+## 开发
+
+`ruff`（lint + format）与 `pyright`（类型检查）作为 dev 依赖装在项目内的 `.venv` 中：
+
+```bash
+uv run ruff check .     # 静态检查
+uv run ruff format .    # 格式化
+uv run pyright          # 类型检查
+```
+
+相关配置在 `pyproject.toml` 的 `[tool.ruff]` / `[tool.pyright]`；Markdown 里的代码块不参与 `ruff format`。
 
 ## 快速开始
 
@@ -105,6 +116,18 @@ run(app, host="0.0.0.0", port=8080)
 
 ```text
 .
+├── AGENT.md         # 给 AI 助手与贡献者的项目说明
+├── LICENSE          # MPL-2.0
+├── README.md
+├── pyproject.toml   # 依赖声明 + ruff / pyright 配置
+├── .python-version  # 固定 Python 3.11
+├── .gitignore
+└── uv.lock          # uv 锁文件
+```
+
+`v1.5` 分支上的实现代码：
+
+```text
 ├── message.py       # 数据模型（MessageSegment / MessageType / Button / MessageInfo）与消息记录
 ├── openapi.py       # Openapi 类：主动调用云湖开放接口
 └── subscription.py  # Webhook 事件订阅（bottle + pyee）
