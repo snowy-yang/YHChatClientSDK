@@ -3,7 +3,7 @@
 > 本文件由 `tools/gen_endpoints.py` 从 yhchatAPI 文档站生成，请勿手工编辑。
 > 覆盖状态来自 `docs/implemented.txt`（每行一个已实现路径）；未列出即视为尚未实现。
 
-共 242 个端点，已实现 221 个。
+共 242 个端点，已实现 225 个。
 
 ## 按文档分组
 
@@ -384,10 +384,10 @@
 | [x] | `POST` | `/v1/user/captcha` | 获取人机验证图片 | user token |
 | [x] | `POST` | `/v1/user/verification-login` | 短信验证码登录 | user token |
 | [x] | `GET` | `/v1/user/info` | 获取用户自身信息 | user token |
-| [ ] | `POST` | `/v1/user/get-user` | 获取用户信息 | user token |
-| [ ] | `POST` | `/v1/user/medal` | 获取自身勋章 | user token |
-| [ ] | `POST` | `/v1/user/edit-nickname` | 更改自身名称 | user token |
-| [ ] | `POST` | `/v1/user/edit-avatar` | 更改自身头像 | user token |
+| [x] | `POST` | `/v1/user/get-user` | 获取用户信息 | user token |
+| [x] | `POST` | `/v1/user/medal` | 获取自身勋章 | user token |
+| [x] | `POST` | `/v1/user/edit-nickname` | 更改自身名称 | user token |
+| [x] | `POST` | `/v1/user/edit-avatar` | 更改自身头像 | user token |
 | [x] | `POST` | `/v1/user/email-login` | 用户邮箱密码登录 | user token |
 | [x] | `POST` | `/v1/user/logout` | 退出登录 | user token |
 | [x] | `POST` | `/v1/user/recommend-category-list` | 获取发现群聊分区 | user token |

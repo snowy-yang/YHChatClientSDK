@@ -101,12 +101,12 @@ async with YHChatClient("机器人 token", user_token="用户 token") as client:
   未逐字段建模；参数用 `body=...` 透传，GET 用 `params=...`。
 - 生成器：`uv run python tools/gen_v1_api.py`（读 `~/Default/yhchatAPI/src/api`，写 `src/yhchat/api/v1/`，
   并把已实现路径合并进 `docs/implemented.txt`）。生成物勿手改，改规则改生成器。
-- 未实现的 21 个端点（其余 protobuf 分组 / XML）在 `docs/v1_pending.md`；覆盖率见 `docs/ENDPOINTS.md`。
+- 未实现的 17 个端点（其余 protobuf 分组 / XML）在 `docs/v1_pending.md`；覆盖率见 `docs/ENDPOINTS.md`。
 
 ### protobuf 端点
 
-`v1` 里 29 个端点用 protobuf 收发（`msg`、`group`、`user`、`bot` 等），它们的错误码在消息体的 `Status` 里，
-所以单独挂在 `client.v1.proto`：
+`v1` 里 29 个端点用 protobuf 收发（`msg`、`user`、`group`、`bot` 等），它们的错误码在消息体的 `Status` 里，
+所以单独挂在 `client.v1.proto`（已实现 `msg` 9 个、`user` 4 个）：
 
 ```python
 from yhchat.proto._pb import full_pb2

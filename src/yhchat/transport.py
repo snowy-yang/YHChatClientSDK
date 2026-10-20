@@ -16,7 +16,6 @@ _SUCCESS_CODE = 1
 MessageT = TypeVar("MessageT", bound=Message)
 
 
-
 class HttpTransport:
     """对 :class:`httpx.AsyncClient` 的薄封装。
 
@@ -124,7 +123,6 @@ class HttpTransport:
         if response.status_code >= 400:
             raise TransportError(f"{method} {path} 返回 HTTP {response.status_code}")
         return response_type.FromString(response.content)
-
 
     async def request_stream(
         self,

@@ -31,6 +31,14 @@ enum ContentType {
   a2ui = 14;
 }
 
+enum VipStatus {
+  VIP_STATUS_NONE = 0;
+  VIP_STATUS_ACTIVE = 1;
+  VIP_STATUS_EXPIRED = 2;
+}
+
+message Empty {}
+
 message Status {
   int64 request_id = 1;
   int32 code = 2;
@@ -150,6 +158,74 @@ message RecallMsg {
   repeated string msg_id = 2;
   string chat_id = 3;
   ChatType chat_type = 4;
+}
+
+message MedalInfo {
+  uint64 id = 1;
+  string name = 2;
+  uint64 sort = 5;
+}
+
+message RemarkInfo {
+  string remark_name = 1;
+  string phone = 2;
+  string extra_remark = 3;
+}
+
+message ProfileInfo {
+  string last_active_time = 1;
+  string introduction = 2;
+  int32 gender = 3;
+  uint64 birthday_timestamp = 4;
+  string city = 5;
+  string district = 6;
+  string address = 7;
+}
+
+message GetUserRequest {
+  string id = 2;
+}
+
+message GetUserResponse {
+  Status status = 1;
+  Data data = 2;
+
+  message Data {
+    string id = 1;
+    string name = 2;
+    uint64 name_id = 3;
+    string avatar_url = 4;
+    uint64 avatar_id = 5;
+    repeated MedalInfo medal = 6;
+    string register_time = 7;
+    bool do_not_disturb = 8;
+    int64 ban_id = 9;
+    int64 ban_until_timestamp = 10;
+    int32 online_day = 11;
+    int32 continuous_online_day = 12;
+    bool is_vip = 13;
+    uint64 vip_expired_timestamp = 14;
+    VipStatus vip_status = 15;
+    bool is_blocked = 16;
+    bool top = 17;
+    RemarkInfo remark_info = 18;
+    ProfileInfo profile_info = 19;
+    string ip_geo = 20;
+    string ban_reason = 21;
+  }
+}
+
+message GetSelfMedal {
+  Status status = 1;
+  repeated MedalInfo medal = 2;
+}
+
+message EditNicknameRequest {
+  string name = 3;
+}
+
+message EditAvatarRequest {
+  string url = 2;
 }
 
 message ListMsgResponse {

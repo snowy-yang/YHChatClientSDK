@@ -25,6 +25,10 @@ PROTO_ENDPOINTS: frozenset[str] = frozenset(
         "/v1/msg/recall-msg",
         "/v1/msg/recall-msg-batch",
         "/v1/msg/button-report",
+        "/v1/user/get-user",
+        "/v1/user/medal",
+        "/v1/user/edit-nickname",
+        "/v1/user/edit-avatar",
     }
 )
 """已经实现的 protobuf 端点路径，生成器据此算覆盖率、写 ``implemented.txt``。"""
@@ -36,6 +40,8 @@ class V1ProtoAPI:
     def __init__(self, http: HttpTransport) -> None:
         self.msg = MsgProtoAPI(http)
         """``v1/msg`` 的 protobuf 端点。"""
+        self.user = UserProtoAPI(http)
+        """``v1/user`` 的 protobuf 端点。"""
 
 
 class ProtoGroupAPI:
@@ -71,15 +77,11 @@ class MsgProtoAPI(ProtoGroupAPI):
         """按消息序列列出消息（不含指定消息）。``POST /v1/msg/list-message-by-seq``"""
         return await self._call("/v1/msg/list-message-by-seq", request, full_pb2.ListMsgResponse)
 
-    async def list_message_by_mid_seq(
-        self, request: full_pb2.ListMsgByMidSeqRequest
-    ) -> full_pb2.ListMsgResponse:
+    async def list_message_by_mid_seq(self, request: full_pb2.ListMsgByMidSeqRequest) -> full_pb2.ListMsgResponse:
         """按消息 ID + 序列列出消息（含指定消息）。``POST /v1/msg/list-message-by-mid-seq``"""
         return await self._call("/v1/msg/list-message-by-mid-seq", request, full_pb2.ListMsgResponse)
 
-    async def list_message_image(
-        self, request: full_pb2.PicListMsgByMidSeqRequest
-    ) -> full_pb2.ListMsgResponse:
+    async def list_message_image(self, request: full_pb2.PicListMsgByMidSeqRequest) -> full_pb2.ListMsgResponse:
         """取消息列表里的图片。``POST /v1/msg/pic-list-message-by-mid-seq``"""
         return await self._call("/v1/msg/pic-list-message-by-mid-seq", request, full_pb2.ListMsgResponse)
 
@@ -94,3 +96,23 @@ class MsgProtoAPI(ProtoGroupAPI):
     async def report_button(self, request: full_pb2.ButtonReportRequest) -> full_pb2.StatusResponse:
         """发送按钮点击事件。``POST /v1/msg/button-report``"""
         return await self._call("/v1/msg/button-report", request, full_pb2.StatusResponse)
+
+
+class UserProtoAPI(ProtoGroupAPI):
+    """``v1/user`` 的 protobuf 端点（4 个）。"""
+
+    async def get_user(self, request: full_pb2.GetUserRequest) -> full_pb2.GetUserResponse:
+        """获取指定用户信息。``POST /v1/user/get-user``"""
+        return await self._call("/v1/user/get-user", request, full_pb2.GetUserResponse)
+
+    async def get_self_medal(self) -> full_pb2.GetSelfMedal:
+        """获取自身勋章。``POST /v1/user/medal``（无请求体）"""
+        return await self._call("/v1/user/medal", full_pb2.Empty(), full_pb2.GetSelfMedal)
+
+    async def edit_nickname(self, request: full_pb2.EditNicknameRequest) -> full_pb2.StatusResponse:
+        """更改自身昵称。``POST /v1/user/edit-nickname``"""
+        return await self._call("/v1/user/edit-nickname", request, full_pb2.StatusResponse)
+
+    async def edit_avatar(self, request: full_pb2.EditAvatarRequest) -> full_pb2.StatusResponse:
+        """更改自身头像。``POST /v1/user/edit-avatar``"""
+        return await self._call("/v1/user/edit-avatar", request, full_pb2.StatusResponse)

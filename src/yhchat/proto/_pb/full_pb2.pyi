@@ -28,6 +28,12 @@ class ContentType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     audio: _ClassVar[ContentType]
     call: _ClassVar[ContentType]
     a2ui: _ClassVar[ContentType]
+
+class VipStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    VIP_STATUS_NONE: _ClassVar[VipStatus]
+    VIP_STATUS_ACTIVE: _ClassVar[VipStatus]
+    VIP_STATUS_EXPIRED: _ClassVar[VipStatus]
 unknown1: ChatType
 user: ChatType
 group: ChatType
@@ -44,6 +50,13 @@ tip: ContentType
 audio: ContentType
 call: ContentType
 a2ui: ContentType
+VIP_STATUS_NONE: VipStatus
+VIP_STATUS_ACTIVE: VipStatus
+VIP_STATUS_EXPIRED: VipStatus
+
+class Empty(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
 
 class Status(_message.Message):
     __slots__ = ("request_id", "code", "msg")
@@ -258,6 +271,123 @@ class RecallMsg(_message.Message):
     chat_id: str
     chat_type: ChatType
     def __init__(self, msg_id: _Optional[_Iterable[str]] = ..., chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ...) -> None: ...
+
+class MedalInfo(_message.Message):
+    __slots__ = ("id", "name", "sort")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    SORT_FIELD_NUMBER: _ClassVar[int]
+    id: int
+    name: str
+    sort: int
+    def __init__(self, id: _Optional[int] = ..., name: _Optional[str] = ..., sort: _Optional[int] = ...) -> None: ...
+
+class RemarkInfo(_message.Message):
+    __slots__ = ("remark_name", "phone", "extra_remark")
+    REMARK_NAME_FIELD_NUMBER: _ClassVar[int]
+    PHONE_FIELD_NUMBER: _ClassVar[int]
+    EXTRA_REMARK_FIELD_NUMBER: _ClassVar[int]
+    remark_name: str
+    phone: str
+    extra_remark: str
+    def __init__(self, remark_name: _Optional[str] = ..., phone: _Optional[str] = ..., extra_remark: _Optional[str] = ...) -> None: ...
+
+class ProfileInfo(_message.Message):
+    __slots__ = ("last_active_time", "introduction", "gender", "birthday_timestamp", "city", "district", "address")
+    LAST_ACTIVE_TIME_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    GENDER_FIELD_NUMBER: _ClassVar[int]
+    BIRTHDAY_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    CITY_FIELD_NUMBER: _ClassVar[int]
+    DISTRICT_FIELD_NUMBER: _ClassVar[int]
+    ADDRESS_FIELD_NUMBER: _ClassVar[int]
+    last_active_time: str
+    introduction: str
+    gender: int
+    birthday_timestamp: int
+    city: str
+    district: str
+    address: str
+    def __init__(self, last_active_time: _Optional[str] = ..., introduction: _Optional[str] = ..., gender: _Optional[int] = ..., birthday_timestamp: _Optional[int] = ..., city: _Optional[str] = ..., district: _Optional[str] = ..., address: _Optional[str] = ...) -> None: ...
+
+class GetUserRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class GetUserResponse(_message.Message):
+    __slots__ = ("status", "data")
+    class Data(_message.Message):
+        __slots__ = ("id", "name", "name_id", "avatar_url", "avatar_id", "medal", "register_time", "do_not_disturb", "ban_id", "ban_until_timestamp", "online_day", "continuous_online_day", "is_vip", "vip_expired_timestamp", "vip_status", "is_blocked", "top", "remark_info", "profile_info", "ip_geo", "ban_reason")
+        ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        NAME_ID_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_ID_FIELD_NUMBER: _ClassVar[int]
+        MEDAL_FIELD_NUMBER: _ClassVar[int]
+        REGISTER_TIME_FIELD_NUMBER: _ClassVar[int]
+        DO_NOT_DISTURB_FIELD_NUMBER: _ClassVar[int]
+        BAN_ID_FIELD_NUMBER: _ClassVar[int]
+        BAN_UNTIL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        ONLINE_DAY_FIELD_NUMBER: _ClassVar[int]
+        CONTINUOUS_ONLINE_DAY_FIELD_NUMBER: _ClassVar[int]
+        IS_VIP_FIELD_NUMBER: _ClassVar[int]
+        VIP_EXPIRED_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        VIP_STATUS_FIELD_NUMBER: _ClassVar[int]
+        IS_BLOCKED_FIELD_NUMBER: _ClassVar[int]
+        TOP_FIELD_NUMBER: _ClassVar[int]
+        REMARK_INFO_FIELD_NUMBER: _ClassVar[int]
+        PROFILE_INFO_FIELD_NUMBER: _ClassVar[int]
+        IP_GEO_FIELD_NUMBER: _ClassVar[int]
+        BAN_REASON_FIELD_NUMBER: _ClassVar[int]
+        id: str
+        name: str
+        name_id: int
+        avatar_url: str
+        avatar_id: int
+        medal: _containers.RepeatedCompositeFieldContainer[MedalInfo]
+        register_time: str
+        do_not_disturb: bool
+        ban_id: int
+        ban_until_timestamp: int
+        online_day: int
+        continuous_online_day: int
+        is_vip: bool
+        vip_expired_timestamp: int
+        vip_status: VipStatus
+        is_blocked: bool
+        top: bool
+        remark_info: RemarkInfo
+        profile_info: ProfileInfo
+        ip_geo: str
+        ban_reason: str
+        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., name_id: _Optional[int] = ..., avatar_url: _Optional[str] = ..., avatar_id: _Optional[int] = ..., medal: _Optional[_Iterable[_Union[MedalInfo, _Mapping]]] = ..., register_time: _Optional[str] = ..., do_not_disturb: _Optional[bool] = ..., ban_id: _Optional[int] = ..., ban_until_timestamp: _Optional[int] = ..., online_day: _Optional[int] = ..., continuous_online_day: _Optional[int] = ..., is_vip: _Optional[bool] = ..., vip_expired_timestamp: _Optional[int] = ..., vip_status: _Optional[_Union[VipStatus, str]] = ..., is_blocked: _Optional[bool] = ..., top: _Optional[bool] = ..., remark_info: _Optional[_Union[RemarkInfo, _Mapping]] = ..., profile_info: _Optional[_Union[ProfileInfo, _Mapping]] = ..., ip_geo: _Optional[str] = ..., ban_reason: _Optional[str] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: GetUserResponse.Data
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[GetUserResponse.Data, _Mapping]] = ...) -> None: ...
+
+class GetSelfMedal(_message.Message):
+    __slots__ = ("status", "medal")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    MEDAL_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    medal: _containers.RepeatedCompositeFieldContainer[MedalInfo]
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., medal: _Optional[_Iterable[_Union[MedalInfo, _Mapping]]] = ...) -> None: ...
+
+class EditNicknameRequest(_message.Message):
+    __slots__ = ("name",)
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    def __init__(self, name: _Optional[str] = ...) -> None: ...
+
+class EditAvatarRequest(_message.Message):
+    __slots__ = ("url",)
+    URL_FIELD_NUMBER: _ClassVar[int]
+    url: str
+    def __init__(self, url: _Optional[str] = ...) -> None: ...
 
 class ListMsgResponse(_message.Message):
     __slots__ = ("status", "data", "total")

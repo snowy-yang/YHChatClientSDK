@@ -21,8 +21,4 @@
 | `/v1/group/list-member` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
 | `/v1/instruction/list` | POST | v1/instruction.md | protobuf 收发，待接 proto 层 |
 | `/v1/misc/auto-update` | GET | v1/misc.md | XML 响应，未建模 |
-| `/v1/user/edit-avatar` | POST | v1/user.md | protobuf 收发，待接 proto 层 |
-| `/v1/user/edit-nickname` | POST | v1/user.md | protobuf 收发，待接 proto 层 |
-| `/v1/user/get-user` | POST | v1/user.md | protobuf 收发，待接 proto 层 |
-| `/v1/user/medal` | POST | v1/user.md | protobuf 收发，待接 proto 层 |
 | ``https://api.qiniu.com/v4/query` | GET | v1/misc.md | 外部地址，不是云湖路径 |

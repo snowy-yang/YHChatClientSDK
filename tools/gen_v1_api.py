@@ -342,7 +342,9 @@ def proto_paths() -> set[str]:
     source = ROOT / "src/yhchat/api/v1/_proto.py"
     if not source.exists():
         return set()
-    match = re.search(r"PROTO_ENDPOINTS[^=]*=\s*frozenset\(\s*\{(?P<body>.*?)\}", source.read_text(encoding="utf-8"), re.S)
+    match = re.search(
+        r"PROTO_ENDPOINTS[^=]*=\s*frozenset\(\s*\{(?P<body>.*?)\}", source.read_text(encoding="utf-8"), re.S
+    )
     return set(re.findall(r'"(/v1/[^"]+)"', match.group("body"))) if match else set()
 
 
