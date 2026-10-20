@@ -246,11 +246,16 @@ uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 51
 `--grpc-port`（同时起 gRPC）、`--no-http2`（只留 HTTP/1.1）、`--no-trust-env`
 （环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
 
+TLS：`--ssl-cert` + `--ssl-key`（必须成对）、`--ssl-key-password`、`--ssl-ca` +
+`--ssl-client-verify`（mTLS）。参数直接传给 Granian；只给证书不给私钥会以退出码 2 拒绝启动。
+
 已验证（真实进程 + 真实 socket）：HTTP/1.1 与 **h2c（HTTP/2 prior knowledge）** 的 `/health` 都是 200；
 `POST /webhook` → WS 收到 `op:0` 的 `message-created`，`sn` 递增、content 为 `<at id="u2"/>hi`。
 
-事件只做了消息类：其它 `eventType` 一律 200 应答并忽略（云湖会重试非 2xx）。**未做**：回调签名校验
-（云湖文档没给），webhook 重放/去重（`eventId` 只放进 `referrer`）。
+事件只做了消息类：其它 `eventType` 一律 200 应答并忽略（云湖会重试非 2xx）。
+回调按 `eventId` 做 **LRU 去重**（默认 1024 条，`YHChatServer(..., dedupe_size=...)` 可调），重复回调返回
+`{"duplicated": true}` 且不再推事件。**未做**：回调签名校验——云湖文档没有签名机制，公网部署请自行加
+IP 白名单或反向代理层校验。
 
 ## 错误处理
 
@@ -300,7 +305,7 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 
 - `/v1/user/info`：`v1/user.md` 写的是 **protobuf**（`UserInfo`），`web/v1/user.md` 写的是
   **JSON**，同一路径两种格式。SDK 目前实现的是 JSON 版本（`client.v1.web_user.info`），
-  protobuf 字段已备好（`full.proto` 的 `UserInfo` 未加），等有 token 实测后再定。
+  protobuf 侧的 `UserInfo` 消息还没加进 `full.proto`，等有 token 实测后再定。
 
 - 文档把按钮 `actionType` 的 1/2 注释写反了；本 SDK 按示例语义处理：**1=跳转（带 url）、2=复制（带 value）**。
 - `/bot/messages` 文档用 `message-id` 查询参数，旧版实现用的是 `msg-id`，本 SDK 按文档实现，待用真实 token 验证。

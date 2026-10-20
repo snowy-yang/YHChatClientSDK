@@ -90,6 +90,11 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 
 ## 服务与 CLI 约定
 
+- webhook 按 `header.eventId` 做 LRU 去重（`dedupe_size` 默认 1024）；改动回调处理时不要绕过它，否则
+  云湖重投会产生重复事件。
+- TLS 参数（`--ssl-cert/--ssl-key/--ssl-key-password/--ssl-ca/--ssl-client-verify`）直接透传给 Granian；
+  `--ssl-cert` 与 `--ssl-key` 必须成对，缺一个返回退出码 2。
+
 - `server/app.py` 只做装配：`/health`、`/webhook`、`Mount("/satori", ...)`；把云湖回调翻译成 Satori 事件在
   `server/webhook.py`（`parse_webhook` → `to_satori_event`），不要在 app 里堆映射逻辑。
 - 非消息事件（`eventType` 不是 `message.receive.*`）必须 200 应答并忽略：云湖对非 2xx 会重试。

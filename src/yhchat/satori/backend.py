@@ -233,9 +233,7 @@ class YHChatBackend:
         """
         if guild_id is not None:
             return Page(data=[Channel(id=guild_id, type=CHANNEL_TEXT, name=guild_id)])
-        response = await self._client.v1.proto.conversation.list_conversations(
-            full_pb2.ConversationListRequest()
-        )
+        response = await self._client.v1.proto.conversation.list_conversations(full_pb2.ConversationListRequest())
         channels = [
             Channel(
                 id=item.chat_id,
@@ -264,8 +262,7 @@ class YHChatBackend:
             )
         )
         guilds = [
-            Guild(id=group.id, name=group.name or group.id, avatar=group.avatar_url or None)
-            for group in response.group
+            Guild(id=group.id, name=group.name or group.id, avatar=group.avatar_url or None) for group in response.group
         ]
         return Page(data=guilds, next=str(page + 1) if len(guilds) >= _PAGE_SIZE else None)
 

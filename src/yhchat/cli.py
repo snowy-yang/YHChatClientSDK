@@ -6,7 +6,9 @@ gRPC 可选，传 ``--grpc-port`` 时和 HTTP 服务跑在同一个事件循环�
 
 import argparse
 import asyncio
+import sys
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 
@@ -32,6 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="不读取 HTTP(S)_PROXY 等环境变量（代理变量含非法值时用）",
     )
+    serve.add_argument("--ssl-cert", type=Path, default=None, help="TLS 证书文件（PEM），需与 --ssl-key 同时给")
+    serve.add_argument("--ssl-key", type=Path, default=None, help="TLS 私钥文件（PEM）")
+    serve.add_argument("--ssl-key-password", default=None, help="TLS 私钥口令")
+    serve.add_argument("--ssl-ca", type=Path, default=None, help="客户端证书 CA（mTLS）")
+    serve.add_argument("--ssl-client-verify", action="store_true", help="要求客户端证书（mTLS）")
     return parser
 
 
@@ -52,6 +59,10 @@ async def _serve(args: argparse.Namespace) -> int:
     from .client import YHChatClient
     from .server.app import YHChatServer
 
+    if bool(args.ssl_cert) != bool(args.ssl_key):
+        print("--ssl-cert 与 --ssl-key 必须同时提供", file=sys.stderr)
+        return 2
+
     client_kwargs: dict[str, Any] = {"http2": not args.no_http2, "trust_env": not args.no_trust_env}
     if args.base_url:
         client_kwargs["base_url"] = args.base_url
@@ -70,15 +81,36 @@ async def _serve(args: argparse.Namespace) -> int:
 
             grpc_server, _ = await serve_grpc(client, host=args.host, port=args.grpc_port)
         try:
-            await run_granian(server.build_app(), host=args.host, port=args.port, http2=not args.no_http2)
+            await run_granian(
+                server.build_app(),
+                host=args.host,
+                port=args.port,
+                http2=not args.no_http2,
+                ssl_cert=args.ssl_cert,
+                ssl_key=args.ssl_key,
+                ssl_key_password=args.ssl_key_password,
+                ssl_ca=args.ssl_ca,
+                ssl_client_verify=args.ssl_client_verify,
+            )
         finally:
             if grpc_server is not None:
                 await grpc_server.stop(grace=0)
     return 0
 
 
-async def run_granian(app: object, *, host: str, port: int, http2: bool = True) -> None:
-    """用 Granian 跑 ASGI 应用（WebSocket 走 HTTP/1.1，HTTP/2 用于普通请求）。"""
+async def run_granian(
+    app: object,
+    *,
+    host: str,
+    port: int,
+    http2: bool = True,
+    ssl_cert: Path | None = None,
+    ssl_key: Path | None = None,
+    ssl_key_password: str | None = None,
+    ssl_ca: Path | None = None,
+    ssl_client_verify: bool = False,
+) -> None:
+    """用 Granian 跑 ASGI 应用（WebSocket 走 HTTP/1.1，HTTP/2 用于普通请求，可挂 TLS）。"""
     from granian.constants import HTTPModes, Interfaces
     from granian.server.embed import Server
 
@@ -89,6 +121,11 @@ async def run_granian(app: object, *, host: str, port: int, http2: bool = True) 
         interface=Interfaces.ASGI,
         http=HTTPModes.auto if http2 else HTTPModes.http1,
         websockets=True,
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key,
+        ssl_key_password=ssl_key_password,
+        ssl_ca=ssl_ca,
+        ssl_client_verify=ssl_client_verify,
     )
     await server.serve()
 

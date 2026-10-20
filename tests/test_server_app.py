@@ -137,3 +137,15 @@ async def test_webhook_path_is_configurable(sdk_client: YHChatClient) -> None:
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         assert (await client.post("/yh/callback", json=MESSAGE_EVENT)).status_code == 200
         assert (await client.post("/webhook", json=MESSAGE_EVENT)).status_code == 404
+
+
+async def test_webhook_dedupes_by_event_id(server: YHChatServer, http: httpx.AsyncClient) -> None:
+    async with server.bus.subscribe() as queue:
+        first = await http.post("/webhook", json=MESSAGE_EVENT)
+        second = await http.post("/webhook", json=MESSAGE_EVENT)
+
+        assert first.json() == {}
+        assert second.json() == {"duplicated": True}
+        event = await asyncio.wait_for(queue.get(), timeout=1)
+        assert event.sn == 1
+        assert queue.empty()

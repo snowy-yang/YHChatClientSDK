@@ -1,5 +1,7 @@
 """HTTP/2 ASGI 服务：健康检查、云湖 webhook 接收、Satori 挂载。"""
 
+from collections import OrderedDict
+
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -30,11 +32,14 @@ class YHChatServer:
         webhook_path: str = "/webhook",
         satori_path: str = "/satori",
         bus: EventBus | None = None,
+        dedupe_size: int = 1024,
     ) -> None:
         self._backend = YHChatBackend(client, self_id=self_id, platform=platform)
         self._satori = SatoriChatServer(self._backend, bus=bus, token=satori_token)
         self._webhook_path = webhook_path
         self._satori_path = satori_path
+        self._dedupe_size = dedupe_size
+        self._seen_events: OrderedDict[str, None] = OrderedDict()
 
     @property
     def backend(self) -> YHChatBackend:
@@ -75,6 +80,18 @@ class YHChatServer:
             return JSONResponse({"message": f"回调结构不合法: {exc}"}, status_code=400)
         if payload is None:
             return JSONResponse({})
+        if payload.header.event_id and self._already_seen(payload.header.event_id):
+            # 云湖会重投回调；按 eventId 去重，避免同一条消息推两次事件
+            return JSONResponse({"duplicated": True})
         event = to_satori_event(payload, login=await self._backend.login(), registry=self._backend.registry)
         await self.bus.publish(event)
         return JSONResponse({})
+
+    def _already_seen(self, event_id: str) -> bool:
+        """按 eventId 去重：见过返回 True，否则记下并淘汰最旧的。"""
+        if event_id in self._seen_events:
+            return True
+        self._seen_events[event_id] = None
+        while len(self._seen_events) > self._dedupe_size:
+            self._seen_events.popitem(last=False)
+        return False

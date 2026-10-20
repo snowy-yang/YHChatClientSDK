@@ -323,7 +323,8 @@ def render_pending(skipped: list[Skipped], implemented: set[str]) -> str:
         "由 `tools/gen_v1_api.py` 生成：这些端点不是 JSON 收发，等 proto 层或单独处理。",
         "",
     ]
-    relevant = [        item
+    relevant = [
+        item
         for item in skipped
         if item.reason not in {"open-apis 已手写", "与 v1 文档重复", "外部地址，不是云湖路径"}
         and item.path not in implemented
