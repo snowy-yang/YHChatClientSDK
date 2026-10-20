@@ -3,7 +3,7 @@
 > 本文件由 `tools/gen_endpoints.py` 从 yhchatAPI 文档站生成，请勿手工编辑。
 > 覆盖状态来自 `docs/implemented.txt`（每行一个已实现路径）；未列出即视为尚未实现。
 
-共 242 个端点，已实现 225 个。
+共 242 个端点，已实现 234 个。
 
 ## 按文档分组
 
@@ -234,14 +234,14 @@
 | [x] | `POST` | `/v1/group-tag/edit` | 编辑群组标签 | user token |
 | [x] | `POST` | `/v1/group-tag/create` | 新增群组标签 | user token |
 | [x] | `POST` | `/v1/group-tag/delete` | 删除群组标签 | user token |
-| [ ] | `POST` | `/v1/group-tag/members` | 获取标签绑定的用户列表 | user token |
+| [x] | `POST` | `/v1/group-tag/members` | 获取标签绑定的用户列表 | user token |
 
 ### `v1/group.md`
 
 | 状态 | 方法 | 路径 | 说明 | 鉴权 |
 | --- | --- | --- | --- | --- |
-| [ ] | `POST` | `/v1/group/info` | 获取群聊信息 | user token |
-| [ ] | `POST` | `/v1/group/list-member` | 获取群成员列表 | user token |
+| [x] | `POST` | `/v1/group/info` | 获取群聊信息 | user token |
+| [x] | `POST` | `/v1/group/list-member` | 获取群成员列表 | user token |
 | [x] | `POST` | `/v1/group/live-room` | 获取群聊语音房间 | user token |
 | [x] | `POST` | `/v1/group/instruction-list` | 获取群指令列表 | user token |
 | [x] | `POST` | `/v1/group/invite` | 邀请加入群聊 | user token |
@@ -250,16 +250,16 @@
 | [x] | `GET` | `/v1/group/category` | 获取群聊推荐分类 | user token |
 | [x] | `POST` | `/v1/group/recommend/list` | 搜索推荐群聊 | user token |
 | [x] | `POST` | `/v1/group/msg-type-limit` | 设置消息类型限制 | user token |
-| [ ] | `POST` | `/v1/group/edit-group` | 编辑群聊信息 | user token |
-| [ ] | `POST` | `/v1/group/bot-list` | 获取群机器人列表 | user token |
+| [x] | `POST` | `/v1/group/edit-group` | 编辑群聊信息 | user token |
+| [x] | `POST` | `/v1/group/bot-list` | 获取群机器人列表 | user token |
 | [x] | `POST` | `/v1/group/remove-bot` | 移除群聊内机器人 | user token |
 | [x] | `POST` | `/v1/group/edit-my-group-nickname` | 设置我的群昵称 | user token |
 | [x] | `POST` | `/v1/group/edit-group-keyword` | 设置群口令 | user token |
-| [ ] | `POST` | `/v1/group/info-add-friend` | 获取群口令关联群聊 | user token |
+| [x] | `POST` | `/v1/group/info-add-friend` | 获取群口令关联群聊 | user token |
 | [x] | `POST` | `/v1/group/edit-auto-delete-message` | 设置群聊消息自动销毁时间 | user token |
 | [x] | `POST` | `/v1/group/edit-stop-member-upload-group-file` | 设置禁止群成员上传到群云盘 | user token |
-| [ ] | `POST` | `/v1/group/create-group` | 创建群聊 | user token |
-| [ ] | `POST` | `/v1/group/dismiss-group` | 解散群聊 | user token |
+| [x] | `POST` | `/v1/group/create-group` | 创建群聊 | user token |
+| [x] | `POST` | `/v1/group/dismiss-group` | 解散群聊 | user token |
 | [x] | `POST` | `/v1/group/live-room` | 获取语音房间列表 | user token |
 | [x] | `POST` | `/v1/group/agree-invite` | 同意进群申请、同意机器人进群 | user token |
 | [x] | `POST` | `/v1/group/member-is-removed` | 用户被是否被该群踢过 | user token |
@@ -273,7 +273,7 @@
 | --- | --- | --- | --- | --- |
 | [x] | `POST` | `/v1/instruction/web-list` | 获取机器人指令列表（网页控制台） | user token |
 | [x] | `POST` | `/v1/instruction/create` | 创建机器人指令 | user token |
-| [ ] | `POST` | `/v1/instruction/list` | 获取机器人私聊指令 | user token |
+| [x] | `POST` | `/v1/instruction/list` | 获取机器人私聊指令 | user token |
 
 ### `v1/live.md`
 

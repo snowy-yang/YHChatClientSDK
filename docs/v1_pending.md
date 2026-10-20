@@ -11,14 +11,5 @@
 | `/v1/conversation/list` | POST | v1/conversation.md | protobuf 收发，待接 proto 层 |
 | `/v1/friend/address-book-list` | POST | v1/friend.md | protobuf 收发，待接 proto 层 |
 | `/v1/friend/request-list` | POST | v1/friend.md | protobuf 收发，待接 proto 层 |
-| `/v1/group-tag/members` | POST | v1/group-tag.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/bot-list` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/create-group` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/dismiss-group` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/edit-group` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/info` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/info-add-friend` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/group/list-member` | POST | v1/group.md | protobuf 收发，待接 proto 层 |
-| `/v1/instruction/list` | POST | v1/instruction.md | protobuf 收发，待接 proto 层 |
 | `/v1/misc/auto-update` | GET | v1/misc.md | XML 响应，未建模 |
 | ``https://api.qiniu.com/v4/query` | GET | v1/misc.md | 外部地址，不是云湖路径 |

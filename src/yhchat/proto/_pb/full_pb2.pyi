@@ -423,3 +423,356 @@ class ListMsgResponse(_message.Message):
     data: _containers.RepeatedCompositeFieldContainer[ListMsgResponse.MsgData]
     total: int
     def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Iterable[_Union[ListMsgResponse.MsgData, _Mapping]]] = ..., total: _Optional[int] = ...) -> None: ...
+
+class BotData(_message.Message):
+    __slots__ = ("bot_id", "name", "name_id", "avatar_url", "avatar_id", "introduction", "create_by", "create_timestamp", "headcount", "private", "is_stop", "always_agree", "prevent_deletion", "do_not_disturb", "ban_id", "ban_until_timestamp", "top", "is_deleted", "group_limit", "field21", "ban_reason")
+    BOT_ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    NAME_ID_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_ID_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    CREATE_BY_FIELD_NUMBER: _ClassVar[int]
+    CREATE_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    HEADCOUNT_FIELD_NUMBER: _ClassVar[int]
+    PRIVATE_FIELD_NUMBER: _ClassVar[int]
+    IS_STOP_FIELD_NUMBER: _ClassVar[int]
+    ALWAYS_AGREE_FIELD_NUMBER: _ClassVar[int]
+    PREVENT_DELETION_FIELD_NUMBER: _ClassVar[int]
+    DO_NOT_DISTURB_FIELD_NUMBER: _ClassVar[int]
+    BAN_ID_FIELD_NUMBER: _ClassVar[int]
+    BAN_UNTIL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    TOP_FIELD_NUMBER: _ClassVar[int]
+    IS_DELETED_FIELD_NUMBER: _ClassVar[int]
+    GROUP_LIMIT_FIELD_NUMBER: _ClassVar[int]
+    FIELD21_FIELD_NUMBER: _ClassVar[int]
+    BAN_REASON_FIELD_NUMBER: _ClassVar[int]
+    bot_id: str
+    name: str
+    name_id: int
+    avatar_url: str
+    avatar_id: int
+    introduction: str
+    create_by: str
+    create_timestamp: int
+    headcount: int
+    private: bool
+    is_stop: bool
+    always_agree: bool
+    prevent_deletion: bool
+    do_not_disturb: bool
+    ban_id: int
+    ban_until_timestamp: int
+    top: bool
+    is_deleted: bool
+    group_limit: bool
+    field21: int
+    ban_reason: str
+    def __init__(self, bot_id: _Optional[str] = ..., name: _Optional[str] = ..., name_id: _Optional[int] = ..., avatar_url: _Optional[str] = ..., avatar_id: _Optional[int] = ..., introduction: _Optional[str] = ..., create_by: _Optional[str] = ..., create_timestamp: _Optional[int] = ..., headcount: _Optional[int] = ..., private: _Optional[bool] = ..., is_stop: _Optional[bool] = ..., always_agree: _Optional[bool] = ..., prevent_deletion: _Optional[bool] = ..., do_not_disturb: _Optional[bool] = ..., ban_id: _Optional[int] = ..., ban_until_timestamp: _Optional[int] = ..., top: _Optional[bool] = ..., is_deleted: _Optional[bool] = ..., group_limit: _Optional[bool] = ..., field21: _Optional[int] = ..., ban_reason: _Optional[str] = ...) -> None: ...
+
+class GroupData(_message.Message):
+    __slots__ = ("group_id", "name", "avatar_url", "avatar_id", "introduction", "headcount", "create_by", "direct_join", "permisson_level", "history_msg", "category_name", "category_id", "private", "do_not_disturb", "community_id", "community_name", "ban_id", "ban_until_timestamp", "top", "admin", "gag_until_timestamp", "limited_msg_type", "owner", "recommandation", "is_gag", "tag_old", "tag", "my_group_nickname", "group_code", "hide_group_members", "field31", "auto_delete_message", "deny_members_upload_to_group_disk", "ban_reason")
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_ID_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    HEADCOUNT_FIELD_NUMBER: _ClassVar[int]
+    CREATE_BY_FIELD_NUMBER: _ClassVar[int]
+    DIRECT_JOIN_FIELD_NUMBER: _ClassVar[int]
+    PERMISSON_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    HISTORY_MSG_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_NAME_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_ID_FIELD_NUMBER: _ClassVar[int]
+    PRIVATE_FIELD_NUMBER: _ClassVar[int]
+    DO_NOT_DISTURB_FIELD_NUMBER: _ClassVar[int]
+    COMMUNITY_ID_FIELD_NUMBER: _ClassVar[int]
+    COMMUNITY_NAME_FIELD_NUMBER: _ClassVar[int]
+    BAN_ID_FIELD_NUMBER: _ClassVar[int]
+    BAN_UNTIL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    TOP_FIELD_NUMBER: _ClassVar[int]
+    ADMIN_FIELD_NUMBER: _ClassVar[int]
+    GAG_UNTIL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    LIMITED_MSG_TYPE_FIELD_NUMBER: _ClassVar[int]
+    OWNER_FIELD_NUMBER: _ClassVar[int]
+    RECOMMANDATION_FIELD_NUMBER: _ClassVar[int]
+    IS_GAG_FIELD_NUMBER: _ClassVar[int]
+    TAG_OLD_FIELD_NUMBER: _ClassVar[int]
+    TAG_FIELD_NUMBER: _ClassVar[int]
+    MY_GROUP_NICKNAME_FIELD_NUMBER: _ClassVar[int]
+    GROUP_CODE_FIELD_NUMBER: _ClassVar[int]
+    HIDE_GROUP_MEMBERS_FIELD_NUMBER: _ClassVar[int]
+    FIELD31_FIELD_NUMBER: _ClassVar[int]
+    AUTO_DELETE_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    DENY_MEMBERS_UPLOAD_TO_GROUP_DISK_FIELD_NUMBER: _ClassVar[int]
+    BAN_REASON_FIELD_NUMBER: _ClassVar[int]
+    group_id: str
+    name: str
+    avatar_url: str
+    avatar_id: int
+    introduction: str
+    headcount: int
+    create_by: str
+    direct_join: bool
+    permisson_level: int
+    history_msg: bool
+    category_name: str
+    category_id: int
+    private: bool
+    do_not_disturb: bool
+    community_id: int
+    community_name: str
+    ban_id: int
+    ban_until_timestamp: int
+    top: bool
+    admin: _containers.RepeatedScalarFieldContainer[str]
+    gag_until_timestamp: int
+    limited_msg_type: str
+    owner: str
+    recommandation: bool
+    is_gag: bool
+    tag_old: _containers.RepeatedScalarFieldContainer[str]
+    tag: _containers.RepeatedCompositeFieldContainer[Tag]
+    my_group_nickname: str
+    group_code: str
+    hide_group_members: bool
+    field31: int
+    auto_delete_message: bool
+    deny_members_upload_to_group_disk: bool
+    ban_reason: str
+    def __init__(self, group_id: _Optional[str] = ..., name: _Optional[str] = ..., avatar_url: _Optional[str] = ..., avatar_id: _Optional[int] = ..., introduction: _Optional[str] = ..., headcount: _Optional[int] = ..., create_by: _Optional[str] = ..., direct_join: _Optional[bool] = ..., permisson_level: _Optional[int] = ..., history_msg: _Optional[bool] = ..., category_name: _Optional[str] = ..., category_id: _Optional[int] = ..., private: _Optional[bool] = ..., do_not_disturb: _Optional[bool] = ..., community_id: _Optional[int] = ..., community_name: _Optional[str] = ..., ban_id: _Optional[int] = ..., ban_until_timestamp: _Optional[int] = ..., top: _Optional[bool] = ..., admin: _Optional[_Iterable[str]] = ..., gag_until_timestamp: _Optional[int] = ..., limited_msg_type: _Optional[str] = ..., owner: _Optional[str] = ..., recommandation: _Optional[bool] = ..., is_gag: _Optional[bool] = ..., tag_old: _Optional[_Iterable[str]] = ..., tag: _Optional[_Iterable[_Union[Tag, _Mapping]]] = ..., my_group_nickname: _Optional[str] = ..., group_code: _Optional[str] = ..., hide_group_members: _Optional[bool] = ..., field31: _Optional[int] = ..., auto_delete_message: _Optional[bool] = ..., deny_members_upload_to_group_disk: _Optional[bool] = ..., ban_reason: _Optional[str] = ...) -> None: ...
+
+class GroupInfoRequest(_message.Message):
+    __slots__ = ("group_id",)
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    group_id: str
+    def __init__(self, group_id: _Optional[str] = ...) -> None: ...
+
+class GroupInfoResponse(_message.Message):
+    __slots__ = ("status", "data", "bot")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    BOT_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: GroupData
+    bot: _containers.RepeatedCompositeFieldContainer[BotData]
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[GroupData, _Mapping]] = ..., bot: _Optional[_Iterable[_Union[BotData, _Mapping]]] = ...) -> None: ...
+
+class ListMemberRequest(_message.Message):
+    __slots__ = ("data", "group_id", "keywords")
+    class Data(_message.Message):
+        __slots__ = ("size", "page")
+        SIZE_FIELD_NUMBER: _ClassVar[int]
+        PAGE_FIELD_NUMBER: _ClassVar[int]
+        size: int
+        page: int
+        def __init__(self, size: _Optional[int] = ..., page: _Optional[int] = ...) -> None: ...
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    KEYWORDS_FIELD_NUMBER: _ClassVar[int]
+    data: ListMemberRequest.Data
+    group_id: str
+    keywords: str
+    def __init__(self, data: _Optional[_Union[ListMemberRequest.Data, _Mapping]] = ..., group_id: _Optional[str] = ..., keywords: _Optional[str] = ...) -> None: ...
+
+class ListMemberResponse(_message.Message):
+    __slots__ = ("status", "user", "total")
+    class User(_message.Message):
+        __slots__ = ("group_id", "user_info", "permission_level", "gag_timestamp", "is_gag")
+        class UserInfo(_message.Message):
+            __slots__ = ("user_id", "name", "avatar_url", "is_vip")
+            USER_ID_FIELD_NUMBER: _ClassVar[int]
+            NAME_FIELD_NUMBER: _ClassVar[int]
+            AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+            IS_VIP_FIELD_NUMBER: _ClassVar[int]
+            user_id: str
+            name: str
+            avatar_url: str
+            is_vip: bool
+            def __init__(self, user_id: _Optional[str] = ..., name: _Optional[str] = ..., avatar_url: _Optional[str] = ..., is_vip: _Optional[bool] = ...) -> None: ...
+        GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+        USER_INFO_FIELD_NUMBER: _ClassVar[int]
+        PERMISSION_LEVEL_FIELD_NUMBER: _ClassVar[int]
+        GAG_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        IS_GAG_FIELD_NUMBER: _ClassVar[int]
+        group_id: str
+        user_info: ListMemberResponse.User.UserInfo
+        permission_level: int
+        gag_timestamp: int
+        is_gag: bool
+        def __init__(self, group_id: _Optional[str] = ..., user_info: _Optional[_Union[ListMemberResponse.User.UserInfo, _Mapping]] = ..., permission_level: _Optional[int] = ..., gag_timestamp: _Optional[int] = ..., is_gag: _Optional[bool] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    USER_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    user: _containers.RepeatedCompositeFieldContainer[ListMemberResponse.User]
+    total: int
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., user: _Optional[_Iterable[_Union[ListMemberResponse.User, _Mapping]]] = ..., total: _Optional[int] = ...) -> None: ...
+
+class EditGroupRequest(_message.Message):
+    __slots__ = ("group_id", "name", "introduction", "avatar_url", "direct_join", "history_msg", "category_name", "category_id", "private", "hide_group_members")
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    DIRECT_JOIN_FIELD_NUMBER: _ClassVar[int]
+    HISTORY_MSG_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_NAME_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_ID_FIELD_NUMBER: _ClassVar[int]
+    PRIVATE_FIELD_NUMBER: _ClassVar[int]
+    HIDE_GROUP_MEMBERS_FIELD_NUMBER: _ClassVar[int]
+    group_id: str
+    name: str
+    introduction: str
+    avatar_url: str
+    direct_join: bool
+    history_msg: bool
+    category_name: str
+    category_id: int
+    private: bool
+    hide_group_members: bool
+    def __init__(self, group_id: _Optional[str] = ..., name: _Optional[str] = ..., introduction: _Optional[str] = ..., avatar_url: _Optional[str] = ..., direct_join: _Optional[bool] = ..., history_msg: _Optional[bool] = ..., category_name: _Optional[str] = ..., category_id: _Optional[int] = ..., private: _Optional[bool] = ..., hide_group_members: _Optional[bool] = ...) -> None: ...
+
+class BotListRequest(_message.Message):
+    __slots__ = ("group_id",)
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    group_id: str
+    def __init__(self, group_id: _Optional[str] = ...) -> None: ...
+
+class BotListResponse(_message.Message):
+    __slots__ = ("status", "bot", "instruction", "menu")
+    class InstructionData(_message.Message):
+        __slots__ = ("id", "bot_id", "name", "desc", "type", "hint_text", "default_text", "sort", "form", "bot_name")
+        ID_FIELD_NUMBER: _ClassVar[int]
+        BOT_ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        DESC_FIELD_NUMBER: _ClassVar[int]
+        TYPE_FIELD_NUMBER: _ClassVar[int]
+        HINT_TEXT_FIELD_NUMBER: _ClassVar[int]
+        DEFAULT_TEXT_FIELD_NUMBER: _ClassVar[int]
+        SORT_FIELD_NUMBER: _ClassVar[int]
+        FORM_FIELD_NUMBER: _ClassVar[int]
+        BOT_NAME_FIELD_NUMBER: _ClassVar[int]
+        id: int
+        bot_id: str
+        name: str
+        desc: str
+        type: int
+        hint_text: str
+        default_text: str
+        sort: int
+        form: str
+        bot_name: str
+        def __init__(self, id: _Optional[int] = ..., bot_id: _Optional[str] = ..., name: _Optional[str] = ..., desc: _Optional[str] = ..., type: _Optional[int] = ..., hint_text: _Optional[str] = ..., default_text: _Optional[str] = ..., sort: _Optional[int] = ..., form: _Optional[str] = ..., bot_name: _Optional[str] = ...) -> None: ...
+    class MenuData(_message.Message):
+        __slots__ = ("id", "bot_id", "name", "content", "menu_type", "create_timestamp", "menu_action", "select")
+        ID_FIELD_NUMBER: _ClassVar[int]
+        BOT_ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        CONTENT_FIELD_NUMBER: _ClassVar[int]
+        MENU_TYPE_FIELD_NUMBER: _ClassVar[int]
+        CREATE_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        MENU_ACTION_FIELD_NUMBER: _ClassVar[int]
+        SELECT_FIELD_NUMBER: _ClassVar[int]
+        id: int
+        bot_id: str
+        name: str
+        content: str
+        menu_type: int
+        create_timestamp: int
+        menu_action: int
+        select: str
+        def __init__(self, id: _Optional[int] = ..., bot_id: _Optional[str] = ..., name: _Optional[str] = ..., content: _Optional[str] = ..., menu_type: _Optional[int] = ..., create_timestamp: _Optional[int] = ..., menu_action: _Optional[int] = ..., select: _Optional[str] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    BOT_FIELD_NUMBER: _ClassVar[int]
+    INSTRUCTION_FIELD_NUMBER: _ClassVar[int]
+    MENU_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    bot: _containers.RepeatedCompositeFieldContainer[BotData]
+    instruction: _containers.RepeatedCompositeFieldContainer[BotListResponse.InstructionData]
+    menu: _containers.RepeatedCompositeFieldContainer[BotListResponse.MenuData]
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., bot: _Optional[_Iterable[_Union[BotData, _Mapping]]] = ..., instruction: _Optional[_Iterable[_Union[BotListResponse.InstructionData, _Mapping]]] = ..., menu: _Optional[_Iterable[_Union[BotListResponse.MenuData, _Mapping]]] = ...) -> None: ...
+
+class InfoAddFriendRequest(_message.Message):
+    __slots__ = ("keyword",)
+    KEYWORD_FIELD_NUMBER: _ClassVar[int]
+    keyword: str
+    def __init__(self, keyword: _Optional[str] = ...) -> None: ...
+
+class InfoAddFriendResponse(_message.Message):
+    __slots__ = ("status", "data")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: GroupData
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[GroupData, _Mapping]] = ...) -> None: ...
+
+class CreateGroupRequest(_message.Message):
+    __slots__ = ("name", "introduction", "avatar_url")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    introduction: str
+    avatar_url: str
+    def __init__(self, name: _Optional[str] = ..., introduction: _Optional[str] = ..., avatar_url: _Optional[str] = ...) -> None: ...
+
+class CreateGroupResponse(_message.Message):
+    __slots__ = ("status", "group_id")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    group_id: str
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., group_id: _Optional[str] = ...) -> None: ...
+
+class DismissGroupRequest(_message.Message):
+    __slots__ = ("group_id",)
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    group_id: str
+    def __init__(self, group_id: _Optional[str] = ...) -> None: ...
+
+class TagMemberRequest(_message.Message):
+    __slots__ = ("data", "group_id", "tag_id")
+    class Data(_message.Message):
+        __slots__ = ("size", "page")
+        SIZE_FIELD_NUMBER: _ClassVar[int]
+        PAGE_FIELD_NUMBER: _ClassVar[int]
+        size: int
+        page: int
+        def __init__(self, size: _Optional[int] = ..., page: _Optional[int] = ...) -> None: ...
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    TAG_ID_FIELD_NUMBER: _ClassVar[int]
+    data: TagMemberRequest.Data
+    group_id: str
+    tag_id: int
+    def __init__(self, data: _Optional[_Union[TagMemberRequest.Data, _Mapping]] = ..., group_id: _Optional[str] = ..., tag_id: _Optional[int] = ...) -> None: ...
+
+class GetBotInstructionRequest(_message.Message):
+    __slots__ = ("bot_id",)
+    BOT_ID_FIELD_NUMBER: _ClassVar[int]
+    bot_id: str
+    def __init__(self, bot_id: _Optional[str] = ...) -> None: ...
+
+class GetBotInstructionResponse(_message.Message):
+    __slots__ = ("status", "data")
+    class Data(_message.Message):
+        __slots__ = ("command_id", "bot_id", "command_name", "instruction_type", "command_default_text", "command_settings_json")
+        COMMAND_ID_FIELD_NUMBER: _ClassVar[int]
+        BOT_ID_FIELD_NUMBER: _ClassVar[int]
+        COMMAND_NAME_FIELD_NUMBER: _ClassVar[int]
+        INSTRUCTION_TYPE_FIELD_NUMBER: _ClassVar[int]
+        COMMAND_DEFAULT_TEXT_FIELD_NUMBER: _ClassVar[int]
+        COMMAND_SETTINGS_JSON_FIELD_NUMBER: _ClassVar[int]
+        command_id: int
+        bot_id: str
+        command_name: str
+        instruction_type: int
+        command_default_text: str
+        command_settings_json: str
+        def __init__(self, command_id: _Optional[int] = ..., bot_id: _Optional[str] = ..., command_name: _Optional[str] = ..., instruction_type: _Optional[int] = ..., command_default_text: _Optional[str] = ..., command_settings_json: _Optional[str] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: GetBotInstructionResponse.Data
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[GetBotInstructionResponse.Data, _Mapping]] = ...) -> None: ...

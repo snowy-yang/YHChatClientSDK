@@ -247,3 +247,206 @@ message ListMsgResponse {
     uint64 edit_timestamp = 12;
   }
 }
+
+message BotData {
+  reserved 12;
+  string bot_id = 1;
+  string name = 2;
+  int64 name_id = 3;
+  string avatar_url = 4;
+  int64 avatar_id = 5;
+  string introduction = 6;
+  string create_by = 7;
+  int64 create_timestamp = 8;
+  int64 headcount = 9;
+  bool private = 10;
+  bool is_stop = 11;
+  bool always_agree = 13;
+  bool prevent_deletion = 14;
+  bool do_not_disturb = 15;
+  int64 ban_id = 16;
+  int64 ban_until_timestamp = 17;
+  bool top = 18;
+  bool is_deleted = 19;
+  bool group_limit = 20;
+  int32 field21 = 21;
+  string ban_reason = 22;
+}
+
+message GroupData {
+  string group_id = 1;
+  string name = 2;
+  string avatar_url = 3;
+  uint64 avatar_id = 4;
+  string introduction = 5;
+  uint64 headcount = 6;
+  string create_by = 7;
+  bool direct_join = 8;
+  int32 permisson_level = 9;
+  bool history_msg = 10;
+  string category_name = 11;
+  uint64 category_id = 12;
+  bool private = 13;
+  bool do_not_disturb = 14;
+  uint64 community_id = 15;
+  string community_name = 16;
+  int64 ban_id = 17;
+  int64 ban_until_timestamp = 18;
+  bool top = 19;
+  repeated string admin = 20;
+  int64 gag_until_timestamp = 21;
+  string limited_msg_type = 22;
+  string owner = 23;
+  bool recommandation = 24;
+  bool is_gag = 25;
+  repeated string tag_old = 26;
+  repeated Tag tag = 27;
+  string my_group_nickname = 28;
+  string group_code = 29;
+  bool hide_group_members = 30;
+  int64 field31 = 31;
+  bool auto_delete_message = 32;
+  bool deny_members_upload_to_group_disk = 33;
+  string ban_reason = 34;
+}
+
+message GroupInfoRequest {
+  string group_id = 2;
+}
+
+message GroupInfoResponse {
+  Status status = 1;
+  GroupData data = 2;
+  repeated BotData bot = 3;
+}
+
+message ListMemberRequest {
+  Data data = 2;
+  message Data {
+    int32 size = 1;
+    int32 page = 2;
+  }
+  string group_id = 3;
+  string keywords = 4;
+}
+
+message ListMemberResponse {
+  Status status = 1;
+  repeated User user = 2;
+  int32 total = 3;
+
+  message User {
+    string group_id = 1;
+    UserInfo user_info = 2;
+    int32 permission_level = 3;
+    int64 gag_timestamp = 4;
+    bool is_gag = 5;
+
+    message UserInfo {
+      string user_id = 1;
+      string name = 2;
+      string avatar_url = 4;
+      bool is_vip = 6;
+    }
+  }
+}
+
+message EditGroupRequest {
+  string group_id = 2;
+  string name = 3;
+  string introduction = 4;
+  string avatar_url = 5;
+  bool direct_join = 6;
+  bool history_msg = 7;
+  string category_name = 8;
+  uint64 category_id = 9;
+  bool private = 10;
+  bool hide_group_members = 11;
+}
+
+message BotListRequest {
+  string group_id = 2;
+}
+
+message BotListResponse {
+  Status status = 1;
+  repeated BotData bot = 2;
+  repeated InstructionData instruction = 3;
+  repeated MenuData menu = 4;
+
+  message InstructionData {
+    int64 id = 1;
+    string bot_id = 2;
+    string name = 3;
+    string desc = 4;
+    int32 type = 5;
+    string hint_text = 6;
+    string default_text = 7;
+    int64 sort = 9;
+    string form = 10;
+    string bot_name = 11;
+  }
+
+  message MenuData {
+    int64 id = 1;
+    string bot_id = 2;
+    string name = 4;
+    string content = 5;
+    int32 menu_type = 6;
+    int64 create_timestamp = 7;
+    int32 menu_action = 10;
+    string select = 99;
+  }
+}
+
+message InfoAddFriendRequest {
+  string keyword = 2;
+}
+
+message InfoAddFriendResponse {
+  Status status = 1;
+  GroupData data = 2;
+}
+
+message CreateGroupRequest {
+  string name = 2;
+  string introduction = 3;
+  string avatar_url = 4;
+}
+
+message CreateGroupResponse {
+  Status status = 1;
+  string group_id = 2;
+}
+
+message DismissGroupRequest {
+  string group_id = 2;
+}
+
+message TagMemberRequest {
+  Data data = 2;
+  message Data {
+    int32 size = 1;
+    int32 page = 2;
+  }
+  string group_id = 3;
+  int64 tag_id = 4;
+}
+
+message GetBotInstructionRequest {
+  string bot_id = 3;
+}
+
+message GetBotInstructionResponse {
+  Status status = 1;
+  Data data = 2;
+
+  message Data {
+    uint64 command_id = 1;
+    string bot_id = 2;
+    string command_name = 3;
+    int32 instruction_type = 5;
+    string command_default_text = 7;
+    string command_settings_json = 10;
+  }
+}

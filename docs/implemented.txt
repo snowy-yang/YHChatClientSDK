@@ -110,11 +110,16 @@
 /v1/group-tag/delete
 /v1/group-tag/edit
 /v1/group-tag/list
+/v1/group-tag/members
 /v1/group-tag/relate
 /v1/group-tag/relate-cancel
 /v1/group/agree-invite
+/v1/group/bot-list
 /v1/group/category
+/v1/group/create-group
+/v1/group/dismiss-group
 /v1/group/edit-auto-delete-message
+/v1/group/edit-group
 /v1/group/edit-group-keyword
 /v1/group/edit-my-group-nickname
 /v1/group/edit-shop-entry
@@ -122,8 +127,11 @@
 /v1/group/event-sse
 /v1/group/gag-member
 /v1/group/group-info
+/v1/group/info
+/v1/group/info-add-friend
 /v1/group/instruction-list
 /v1/group/invite
+/v1/group/list-member
 /v1/group/live-room
 /v1/group/member-is-removed
 /v1/group/msg-type-limit
@@ -133,6 +141,7 @@
 /v1/group/switch
 /v1/instruction/create
 /v1/instruction/edit
+/v1/instruction/list
 /v1/instruction/web-list
 /v1/live/add
 /v1/live/close

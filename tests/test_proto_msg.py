@@ -1,4 +1,4 @@
-"""``v1`` 的 protobuf 端点（``msg`` / ``user``）：请求编码、响应解析、Status 错误映射。"""
+"""``v1`` 的 protobuf 端点（msg / user / group / group-tag / instruction）：编码、解析、错误映射。"""
 
 from collections.abc import AsyncIterator
 from typing import Any
@@ -103,82 +103,126 @@ async def test_http_error_maps_to_transport_error(client: YHChatClient) -> None:
 
 
 @pytest.mark.parametrize(
-    ("method", "path", "request_message"),
+    ("group_name", "method", "path", "request_message"),
     [
-        ("edit_message", "/v1/msg/edit-message", full_pb2.SendMsgRequest(chat_id="c1")),
-        ("list_message_by_seq", "/v1/msg/list-message-by-seq", full_pb2.ListMsgBySeqRequest(chat_id="c1")),
+        ("msg", "edit_message", "/v1/msg/edit-message", full_pb2.SendMsgRequest(chat_id="c1")),
+        ("msg", "list_message_by_seq", "/v1/msg/list-message-by-seq", full_pb2.ListMsgBySeqRequest(chat_id="c1")),
         (
+            "msg",
             "list_message_by_mid_seq",
             "/v1/msg/list-message-by-mid-seq",
             full_pb2.ListMsgByMidSeqRequest(chat_id="c1", msg_id="m1"),
         ),
         (
+            "msg",
             "list_message_image",
             "/v1/msg/pic-list-message-by-mid-seq",
             full_pb2.PicListMsgByMidSeqRequest(chat_id="c1", image_id=7),
         ),
-        ("recall_messages", "/v1/msg/recall-msg-batch", full_pb2.RecallMsg(chat_id="c1", msg_id=["m1", "m2"])),
+        ("msg", "recall_messages", "/v1/msg/recall-msg-batch", full_pb2.RecallMsg(chat_id="c1", msg_id=["m1", "m2"])),
         (
+            "msg",
             "report_button",
             "/v1/msg/button-report",
             full_pb2.ButtonReportRequest(msg_id="m1", chat_id="c1", button_value="ok"),
         ),
-        ("get_user", "/v1/user/get-user", full_pb2.GetUserRequest(id="u1")),
-        ("get_self_medal", "/v1/user/medal", full_pb2.Empty()),
-        ("edit_nickname", "/v1/user/edit-nickname", full_pb2.EditNicknameRequest(name="新名字")),
-        ("edit_avatar", "/v1/user/edit-avatar", full_pb2.EditAvatarRequest(url="https://a/b.png")),
+        ("user", "get_user", "/v1/user/get-user", full_pb2.GetUserRequest(id="u1")),
+        ("user", "get_self_medal", "/v1/user/medal", full_pb2.Empty()),
+        ("user", "edit_nickname", "/v1/user/edit-nickname", full_pb2.EditNicknameRequest(name="新名字")),
+        ("user", "edit_avatar", "/v1/user/edit-avatar", full_pb2.EditAvatarRequest(url="https://a/b.png")),
+        ("group", "info", "/v1/group/info", full_pb2.GroupInfoRequest(group_id="g1")),
+        ("group", "list_member", "/v1/group/list-member", full_pb2.ListMemberRequest(group_id="g1")),
+        ("group", "edit_group", "/v1/group/edit-group", full_pb2.EditGroupRequest(group_id="g1", name="新群名")),
+        ("group", "bot_list", "/v1/group/bot-list", full_pb2.BotListRequest(group_id="g1")),
+        (
+            "group",
+            "info_add_friend",
+            "/v1/group/info-add-friend",
+            full_pb2.InfoAddFriendRequest(keyword="口令"),
+        ),
+        ("group", "create_group", "/v1/group/create-group", full_pb2.CreateGroupRequest(name="新群")),
+        ("group", "dismiss_group", "/v1/group/dismiss-group", full_pb2.DismissGroupRequest(group_id="g1")),
+        ("group_tag", "members", "/v1/group-tag/members", full_pb2.TagMemberRequest(group_id="g1", tag_id=3)),
+        (
+            "instruction",
+            "list_instructions",
+            "/v1/instruction/list",
+            full_pb2.GetBotInstructionRequest(bot_id="b1"),
+        ),
     ],
 )
-async def test_endpoint_paths(client: YHChatClient, method: str, path: str, request_message: Message) -> None:
-    user_methods = {"get_user", "get_self_medal", "edit_nickname", "edit_avatar"}
+async def test_endpoint_paths(
+    client: YHChatClient, group_name: str, method: str, path: str, request_message: Message
+) -> None:
+    group: Any = getattr(client.v1.proto, group_name)
     with respx.mock(base_url=BASE_URL) as mock:
         route = mock.post(path).mock(return_value=httpx.Response(200, content=status_response()))
         if method == "get_self_medal":  # 这个端点没有请求体
-            await client.v1.proto.user.get_self_medal()
-        elif method in user_methods:
-            user_call: Any = getattr(client.v1.proto.user, method)
-            await user_call(request_message)
+            await group.get_self_medal()
         else:
-            msg_call: Any = getattr(client.v1.proto.msg, method)
-            await msg_call(request_message)
+            await getattr(group, method)(request_message)
         assert route.called
 
 
-async def test_get_user_parses_nested_profile(client: YHChatClient) -> None:
-    payload = full_pb2.GetUserResponse(
+async def test_group_info_parses_group_data_and_bots(client: YHChatClient) -> None:
+    payload = full_pb2.GroupInfoResponse(
         status=full_pb2.Status(code=1, msg="success"),
-        data=full_pb2.GetUserResponse.Data(
-            id="u1",
-            name="小明",
-            medal=[full_pb2.MedalInfo(id=3, name="元老", sort=1)],
-            vip_status=full_pb2.VipStatus.VIP_STATUS_ACTIVE,
-            remark_info=full_pb2.RemarkInfo(remark_name="备注名"),
-            profile_info=full_pb2.ProfileInfo(introduction="简介", gender=1),
+        data=full_pb2.GroupData(
+            group_id="g1",
+            name="测试群",
+            headcount=42,
+            admin=["u1", "u2"],
+            tag=[full_pb2.Tag(id=5, text="标签")],
+            my_group_nickname="我的群名片",
+        ),
+        bot=[full_pb2.BotData(bot_id="b1", name="机器人", headcount=7)],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/group/info").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.group.info(full_pb2.GroupInfoRequest(group_id="g1"))
+
+        assert response.data.name == "测试群"
+        assert list(response.data.admin) == ["u1", "u2"]
+        assert response.data.tag[0].text == "标签"
+        assert response.bot[0].name == "机器人"
+
+
+async def test_list_member_parses_nested_user_info(client: YHChatClient) -> None:
+    payload = full_pb2.ListMemberResponse(
+        status=full_pb2.Status(code=1, msg="success"),
+        total=1,
+        user=[
+            full_pb2.ListMemberResponse.User(
+                group_id="g1",
+                permission_level=2,
+                user_info=full_pb2.ListMemberResponse.User.UserInfo(
+                    user_id="u1", name="小明", avatar_url="https://a/b.png", is_vip=True
+                ),
+            )
+        ],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/group/list-member").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.group.list_member(full_pb2.ListMemberRequest(group_id="g1"))
+
+        assert response.total == 1
+        assert response.user[0].user_info.name == "小明"
+        assert response.user[0].permission_level == 2
+
+
+async def test_instruction_list_parses_command(client: YHChatClient) -> None:
+    payload = full_pb2.GetBotInstructionResponse(
+        status=full_pb2.Status(code=1, msg="success"),
+        data=full_pb2.GetBotInstructionResponse.Data(
+            command_id=9, bot_id="b1", command_name="/help", instruction_type=1
         ),
     )
     with respx.mock(base_url=BASE_URL) as mock:
-        route = mock.post("/v1/user/get-user").mock(
-            return_value=httpx.Response(200, content=payload.SerializeToString())
-        )
+        mock.post("/v1/instruction/list").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
 
-        response = await client.v1.proto.user.get_user(full_pb2.GetUserRequest(id="u1"))
+        response = await client.v1.proto.instruction.list_instructions(full_pb2.GetBotInstructionRequest(bot_id="b1"))
 
-        assert full_pb2.GetUserRequest.FromString(route.calls.last.request.content).id == "u1"
-        assert response.data.name == "小明"
-        assert response.data.medal[0].name == "元老"
-        assert response.data.vip_status == full_pb2.VipStatus.VIP_STATUS_ACTIVE
-        assert response.data.remark_info.remark_name == "备注名"
-
-
-async def test_medal_request_has_no_body(client: YHChatClient) -> None:
-    payload = full_pb2.GetSelfMedal(
-        status=full_pb2.Status(code=1, msg="success"),
-        medal=[full_pb2.MedalInfo(id=1, name="新人")],
-    )
-    with respx.mock(base_url=BASE_URL) as mock:
-        route = mock.post("/v1/user/medal").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
-
-        response = await client.v1.proto.user.get_self_medal()
-
-        assert route.calls.last.request.content == b""
-        assert [item.name for item in response.medal] == ["新人"]
+        assert response.data.command_name == "/help"
+        assert response.data.command_id == 9
