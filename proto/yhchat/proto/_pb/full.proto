@@ -450,3 +450,193 @@ message GetBotInstructionResponse {
     string command_settings_json = 10;
   }
 }
+
+enum ContentTypeTextOnly {
+  TEXT_UNSPECIFIED = 0;
+  TEXT_text = 1;
+  TEXT_markdown = 2;
+  TEXT_html = 3;
+}
+
+message BotBoardMessage {
+  string bot_id = 1;
+  string chat_id = 2;
+  ChatType chat_type = 3;
+  string content = 4;
+  ContentTypeTextOnly content_type = 5;
+  int64 last_update_timestamp = 6;
+  string bot_name = 7;
+}
+
+message BotInfoRequest {
+  string id = 2;
+}
+
+message BotInfoResponse {
+  Status status = 1;
+  BotData data = 2;
+}
+
+message BoardRequest {
+  string id = 3;
+  ChatType chat_type = 4;
+}
+
+message BoardResponse {
+  Status status = 1;
+  BotBoardMessage data = 2;
+}
+
+message CreateBotRequest {
+  string name = 2;
+  string introduction = 3;
+  string avatar_url = 4;
+  bool private = 5;
+}
+
+message CreateBotResponse {
+  Status status = 1;
+  BotData data = 2;
+}
+
+message ListFollowerRequest {
+  Data data = 2;
+  string bot_id = 3;
+  string keywords = 4;
+
+  message Data {
+    int32 size = 1;
+    int32 page = 2;
+  }
+}
+
+message ListFollowerResponse {
+  Status status = 1;
+  repeated User user = 2;
+  int32 totol = 3;  // 线上字段名就是 totol，别改
+
+  message User {
+    string user_id = 1;
+    string name = 2;
+    string avatar_url = 4;
+    bool is_vip = 6;
+  }
+}
+
+message JoinGroupListRequest {
+  Data data = 2;
+  string bot_id = 3;
+  string keywords = 4;
+
+  message Data {
+    int32 size = 1;
+    int32 page = 2;
+  }
+}
+
+message JoinGroupListResponse {
+  Status status = 1;
+  repeated Group group = 2;
+  int32 total = 3;
+
+  message Group {
+    string id = 1;
+    string name = 2;
+    string avatar_url = 3;
+  }
+}
+
+message ConversationListRequest {
+  string md5 = 2;
+}
+
+message ConversationListResponse {
+  Status status = 1;
+  repeated Data data = 2;
+  int32 total = 3;
+  string md5 = 4;
+
+  message Data {
+    string chat_id = 1;
+    ChatType chat_type = 2;
+    string remark = 3;
+    string chat_content = 4;
+    uint64 timestamp_ms = 5;
+    int32 unread_msg = 6;
+    bool at = 7;
+    uint64 avatar_id = 8;
+    string avatar_url = 9;
+    bool do_not_disturb = 11;
+    uint64 send_timestamp = 12;
+    bool is_vip = 13;
+    AtData at_data = 14;
+    string name = 15;
+    int32 certification_level = 16;
+
+    message AtData {
+      uint64 unknown = 1;
+      string mentioned_id = 2;
+      string mentioned_name = 3;
+      string mentioned_in = 4;
+      string mentioner_id = 6;
+      string mentioner_name = 7;
+      uint64 msg_seq = 8;
+    }
+  }
+}
+
+message AddressBookListRequest {
+  string md5 = 2;
+}
+
+message AddressBookListResponse {
+  Status status = 1;
+  repeated Data data = 2;
+  string md5 = 3;
+
+  message Data {
+    string list_name = 1;
+    repeated DataList data = 2;
+    ChatType chat_type = 3;
+
+    message DataList {
+      string chat_id = 1;
+      string remark = 2;
+      string avatar_url = 3;
+      int32 permisson_level = 4;
+      bool no_disturb = 5;
+      string name = 8;
+    }
+  }
+}
+
+message RequestListResponse {
+  Status status = 1;
+  repeated Request requests = 2;
+  int32 total = 3;
+  int32 pending = 4;
+
+  message Request {
+    string receiver_name = 1;
+    string receiver_avatar = 2;
+    string name = 3;
+    string avatar = 4;
+    string group_name = 5;
+    string group_avatar = 6;
+    string inviter_id = 7;
+    int32 source_type = 9;
+    int32 target_type = 10;
+    string target_id = 11;
+    string receiver_id = 12;
+    int32 result = 13;
+    int64 processed_at = 14;
+    int64 invite_at = 16;
+    string invite_at_str = 17;
+    int32 request_id = 18;
+    string bot_name = 19;
+    string bot_avatar = 20;
+    string processor_name = 22;
+    string note = 23;
+    bool is_vip = 24;
+  }
+}

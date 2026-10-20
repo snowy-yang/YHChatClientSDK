@@ -82,7 +82,9 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - 生成：`uv run python tools/gen_proto.py` → `src/yhchat/proto/_pb/`；该目录进了 ruff/pyright 的 exclude，
   靠同时生成的 `.pyi` 提供类型。新增 proto 后必须重跑生成，别手改生成物。
 - 端点实现在 `src/yhchat/api/v1/_proto.py`（手写，挂在 `client.v1.proto.<组>`）；新增一条要同步
-  `PROTO_ENDPOINTS`，生成器据此算覆盖率并写 `implemented.txt`。
+  `PROTO_ENDPOINTS`，生成器扫描 `api/v1/_*.py` 里的 `*_ENDPOINTS` 据此算覆盖率并写 `implemented.txt`。
+- 非 JSON/protobuf 的端点在 `_extra.py`（`client.v1.extra`），同样登记进 `EXTRA_ENDPOINTS`；
+  外部地址（如七牛上传 URL）不算云湖端点，不登记。
 - 错误处理：响应消息体的 `Status.code != 1` 抛 `APIError`（带 `endpoint`），HTTP 4xx/5xx 抛 `TransportError`。
 - 测试用 respx 断言「请求字节能被反序列化回原消息」+「响应字节能被解析成嵌套结构」，不要只断言路径。
 

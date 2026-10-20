@@ -34,6 +34,13 @@ class VipStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     VIP_STATUS_NONE: _ClassVar[VipStatus]
     VIP_STATUS_ACTIVE: _ClassVar[VipStatus]
     VIP_STATUS_EXPIRED: _ClassVar[VipStatus]
+
+class ContentTypeTextOnly(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    TEXT_UNSPECIFIED: _ClassVar[ContentTypeTextOnly]
+    TEXT_text: _ClassVar[ContentTypeTextOnly]
+    TEXT_markdown: _ClassVar[ContentTypeTextOnly]
+    TEXT_html: _ClassVar[ContentTypeTextOnly]
 unknown1: ChatType
 user: ChatType
 group: ChatType
@@ -53,6 +60,10 @@ a2ui: ContentType
 VIP_STATUS_NONE: VipStatus
 VIP_STATUS_ACTIVE: VipStatus
 VIP_STATUS_EXPIRED: VipStatus
+TEXT_UNSPECIFIED: ContentTypeTextOnly
+TEXT_text: ContentTypeTextOnly
+TEXT_markdown: ContentTypeTextOnly
+TEXT_html: ContentTypeTextOnly
 
 class Empty(_message.Message):
     __slots__ = ()
@@ -776,3 +787,310 @@ class GetBotInstructionResponse(_message.Message):
     status: Status
     data: GetBotInstructionResponse.Data
     def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[GetBotInstructionResponse.Data, _Mapping]] = ...) -> None: ...
+
+class BotBoardMessage(_message.Message):
+    __slots__ = ("bot_id", "chat_id", "chat_type", "content", "content_type", "last_update_timestamp", "bot_name")
+    BOT_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    LAST_UPDATE_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    BOT_NAME_FIELD_NUMBER: _ClassVar[int]
+    bot_id: str
+    chat_id: str
+    chat_type: ChatType
+    content: str
+    content_type: ContentTypeTextOnly
+    last_update_timestamp: int
+    bot_name: str
+    def __init__(self, bot_id: _Optional[str] = ..., chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., content: _Optional[str] = ..., content_type: _Optional[_Union[ContentTypeTextOnly, str]] = ..., last_update_timestamp: _Optional[int] = ..., bot_name: _Optional[str] = ...) -> None: ...
+
+class BotInfoRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class BotInfoResponse(_message.Message):
+    __slots__ = ("status", "data")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: BotData
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[BotData, _Mapping]] = ...) -> None: ...
+
+class BoardRequest(_message.Message):
+    __slots__ = ("id", "chat_type")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    chat_type: ChatType
+    def __init__(self, id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ...) -> None: ...
+
+class BoardResponse(_message.Message):
+    __slots__ = ("status", "data")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: BotBoardMessage
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[BotBoardMessage, _Mapping]] = ...) -> None: ...
+
+class CreateBotRequest(_message.Message):
+    __slots__ = ("name", "introduction", "avatar_url", "private")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    INTRODUCTION_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    PRIVATE_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    introduction: str
+    avatar_url: str
+    private: bool
+    def __init__(self, name: _Optional[str] = ..., introduction: _Optional[str] = ..., avatar_url: _Optional[str] = ..., private: _Optional[bool] = ...) -> None: ...
+
+class CreateBotResponse(_message.Message):
+    __slots__ = ("status", "data")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: BotData
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[BotData, _Mapping]] = ...) -> None: ...
+
+class ListFollowerRequest(_message.Message):
+    __slots__ = ("data", "bot_id", "keywords")
+    class Data(_message.Message):
+        __slots__ = ("size", "page")
+        SIZE_FIELD_NUMBER: _ClassVar[int]
+        PAGE_FIELD_NUMBER: _ClassVar[int]
+        size: int
+        page: int
+        def __init__(self, size: _Optional[int] = ..., page: _Optional[int] = ...) -> None: ...
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    BOT_ID_FIELD_NUMBER: _ClassVar[int]
+    KEYWORDS_FIELD_NUMBER: _ClassVar[int]
+    data: ListFollowerRequest.Data
+    bot_id: str
+    keywords: str
+    def __init__(self, data: _Optional[_Union[ListFollowerRequest.Data, _Mapping]] = ..., bot_id: _Optional[str] = ..., keywords: _Optional[str] = ...) -> None: ...
+
+class ListFollowerResponse(_message.Message):
+    __slots__ = ("status", "user", "totol")
+    class User(_message.Message):
+        __slots__ = ("user_id", "name", "avatar_url", "is_vip")
+        USER_ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+        IS_VIP_FIELD_NUMBER: _ClassVar[int]
+        user_id: str
+        name: str
+        avatar_url: str
+        is_vip: bool
+        def __init__(self, user_id: _Optional[str] = ..., name: _Optional[str] = ..., avatar_url: _Optional[str] = ..., is_vip: _Optional[bool] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    USER_FIELD_NUMBER: _ClassVar[int]
+    TOTOL_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    user: _containers.RepeatedCompositeFieldContainer[ListFollowerResponse.User]
+    totol: int
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., user: _Optional[_Iterable[_Union[ListFollowerResponse.User, _Mapping]]] = ..., totol: _Optional[int] = ...) -> None: ...
+
+class JoinGroupListRequest(_message.Message):
+    __slots__ = ("data", "bot_id", "keywords")
+    class Data(_message.Message):
+        __slots__ = ("size", "page")
+        SIZE_FIELD_NUMBER: _ClassVar[int]
+        PAGE_FIELD_NUMBER: _ClassVar[int]
+        size: int
+        page: int
+        def __init__(self, size: _Optional[int] = ..., page: _Optional[int] = ...) -> None: ...
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    BOT_ID_FIELD_NUMBER: _ClassVar[int]
+    KEYWORDS_FIELD_NUMBER: _ClassVar[int]
+    data: JoinGroupListRequest.Data
+    bot_id: str
+    keywords: str
+    def __init__(self, data: _Optional[_Union[JoinGroupListRequest.Data, _Mapping]] = ..., bot_id: _Optional[str] = ..., keywords: _Optional[str] = ...) -> None: ...
+
+class JoinGroupListResponse(_message.Message):
+    __slots__ = ("status", "group", "total")
+    class Group(_message.Message):
+        __slots__ = ("id", "name", "avatar_url")
+        ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+        id: str
+        name: str
+        avatar_url: str
+        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., avatar_url: _Optional[str] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    GROUP_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    group: _containers.RepeatedCompositeFieldContainer[JoinGroupListResponse.Group]
+    total: int
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., group: _Optional[_Iterable[_Union[JoinGroupListResponse.Group, _Mapping]]] = ..., total: _Optional[int] = ...) -> None: ...
+
+class ConversationListRequest(_message.Message):
+    __slots__ = ("md5",)
+    MD5_FIELD_NUMBER: _ClassVar[int]
+    md5: str
+    def __init__(self, md5: _Optional[str] = ...) -> None: ...
+
+class ConversationListResponse(_message.Message):
+    __slots__ = ("status", "data", "total", "md5")
+    class Data(_message.Message):
+        __slots__ = ("chat_id", "chat_type", "remark", "chat_content", "timestamp_ms", "unread_msg", "at", "avatar_id", "avatar_url", "do_not_disturb", "send_timestamp", "is_vip", "at_data", "name", "certification_level")
+        class AtData(_message.Message):
+            __slots__ = ("unknown", "mentioned_id", "mentioned_name", "mentioned_in", "mentioner_id", "mentioner_name", "msg_seq")
+            UNKNOWN_FIELD_NUMBER: _ClassVar[int]
+            MENTIONED_ID_FIELD_NUMBER: _ClassVar[int]
+            MENTIONED_NAME_FIELD_NUMBER: _ClassVar[int]
+            MENTIONED_IN_FIELD_NUMBER: _ClassVar[int]
+            MENTIONER_ID_FIELD_NUMBER: _ClassVar[int]
+            MENTIONER_NAME_FIELD_NUMBER: _ClassVar[int]
+            MSG_SEQ_FIELD_NUMBER: _ClassVar[int]
+            unknown: int
+            mentioned_id: str
+            mentioned_name: str
+            mentioned_in: str
+            mentioner_id: str
+            mentioner_name: str
+            msg_seq: int
+            def __init__(self, unknown: _Optional[int] = ..., mentioned_id: _Optional[str] = ..., mentioned_name: _Optional[str] = ..., mentioned_in: _Optional[str] = ..., mentioner_id: _Optional[str] = ..., mentioner_name: _Optional[str] = ..., msg_seq: _Optional[int] = ...) -> None: ...
+        CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+        CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+        REMARK_FIELD_NUMBER: _ClassVar[int]
+        CHAT_CONTENT_FIELD_NUMBER: _ClassVar[int]
+        TIMESTAMP_MS_FIELD_NUMBER: _ClassVar[int]
+        UNREAD_MSG_FIELD_NUMBER: _ClassVar[int]
+        AT_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_ID_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+        DO_NOT_DISTURB_FIELD_NUMBER: _ClassVar[int]
+        SEND_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        IS_VIP_FIELD_NUMBER: _ClassVar[int]
+        AT_DATA_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        CERTIFICATION_LEVEL_FIELD_NUMBER: _ClassVar[int]
+        chat_id: str
+        chat_type: ChatType
+        remark: str
+        chat_content: str
+        timestamp_ms: int
+        unread_msg: int
+        at: bool
+        avatar_id: int
+        avatar_url: str
+        do_not_disturb: bool
+        send_timestamp: int
+        is_vip: bool
+        at_data: ConversationListResponse.Data.AtData
+        name: str
+        certification_level: int
+        def __init__(self, chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., remark: _Optional[str] = ..., chat_content: _Optional[str] = ..., timestamp_ms: _Optional[int] = ..., unread_msg: _Optional[int] = ..., at: _Optional[bool] = ..., avatar_id: _Optional[int] = ..., avatar_url: _Optional[str] = ..., do_not_disturb: _Optional[bool] = ..., send_timestamp: _Optional[int] = ..., is_vip: _Optional[bool] = ..., at_data: _Optional[_Union[ConversationListResponse.Data.AtData, _Mapping]] = ..., name: _Optional[str] = ..., certification_level: _Optional[int] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    MD5_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: _containers.RepeatedCompositeFieldContainer[ConversationListResponse.Data]
+    total: int
+    md5: str
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Iterable[_Union[ConversationListResponse.Data, _Mapping]]] = ..., total: _Optional[int] = ..., md5: _Optional[str] = ...) -> None: ...
+
+class AddressBookListRequest(_message.Message):
+    __slots__ = ("md5",)
+    MD5_FIELD_NUMBER: _ClassVar[int]
+    md5: str
+    def __init__(self, md5: _Optional[str] = ...) -> None: ...
+
+class AddressBookListResponse(_message.Message):
+    __slots__ = ("status", "data", "md5")
+    class Data(_message.Message):
+        __slots__ = ("list_name", "data", "chat_type")
+        class DataList(_message.Message):
+            __slots__ = ("chat_id", "remark", "avatar_url", "permisson_level", "no_disturb", "name")
+            CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+            REMARK_FIELD_NUMBER: _ClassVar[int]
+            AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+            PERMISSON_LEVEL_FIELD_NUMBER: _ClassVar[int]
+            NO_DISTURB_FIELD_NUMBER: _ClassVar[int]
+            NAME_FIELD_NUMBER: _ClassVar[int]
+            chat_id: str
+            remark: str
+            avatar_url: str
+            permisson_level: int
+            no_disturb: bool
+            name: str
+            def __init__(self, chat_id: _Optional[str] = ..., remark: _Optional[str] = ..., avatar_url: _Optional[str] = ..., permisson_level: _Optional[int] = ..., no_disturb: _Optional[bool] = ..., name: _Optional[str] = ...) -> None: ...
+        LIST_NAME_FIELD_NUMBER: _ClassVar[int]
+        DATA_FIELD_NUMBER: _ClassVar[int]
+        CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+        list_name: str
+        data: _containers.RepeatedCompositeFieldContainer[AddressBookListResponse.Data.DataList]
+        chat_type: ChatType
+        def __init__(self, list_name: _Optional[str] = ..., data: _Optional[_Iterable[_Union[AddressBookListResponse.Data.DataList, _Mapping]]] = ..., chat_type: _Optional[_Union[ChatType, str]] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    MD5_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: _containers.RepeatedCompositeFieldContainer[AddressBookListResponse.Data]
+    md5: str
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Iterable[_Union[AddressBookListResponse.Data, _Mapping]]] = ..., md5: _Optional[str] = ...) -> None: ...
+
+class RequestListResponse(_message.Message):
+    __slots__ = ("status", "requests", "total", "pending")
+    class Request(_message.Message):
+        __slots__ = ("receiver_name", "receiver_avatar", "name", "avatar", "group_name", "group_avatar", "inviter_id", "source_type", "target_type", "target_id", "receiver_id", "result", "processed_at", "invite_at", "invite_at_str", "request_id", "bot_name", "bot_avatar", "processor_name", "note", "is_vip")
+        RECEIVER_NAME_FIELD_NUMBER: _ClassVar[int]
+        RECEIVER_AVATAR_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_FIELD_NUMBER: _ClassVar[int]
+        GROUP_NAME_FIELD_NUMBER: _ClassVar[int]
+        GROUP_AVATAR_FIELD_NUMBER: _ClassVar[int]
+        INVITER_ID_FIELD_NUMBER: _ClassVar[int]
+        SOURCE_TYPE_FIELD_NUMBER: _ClassVar[int]
+        TARGET_TYPE_FIELD_NUMBER: _ClassVar[int]
+        TARGET_ID_FIELD_NUMBER: _ClassVar[int]
+        RECEIVER_ID_FIELD_NUMBER: _ClassVar[int]
+        RESULT_FIELD_NUMBER: _ClassVar[int]
+        PROCESSED_AT_FIELD_NUMBER: _ClassVar[int]
+        INVITE_AT_FIELD_NUMBER: _ClassVar[int]
+        INVITE_AT_STR_FIELD_NUMBER: _ClassVar[int]
+        REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+        BOT_NAME_FIELD_NUMBER: _ClassVar[int]
+        BOT_AVATAR_FIELD_NUMBER: _ClassVar[int]
+        PROCESSOR_NAME_FIELD_NUMBER: _ClassVar[int]
+        NOTE_FIELD_NUMBER: _ClassVar[int]
+        IS_VIP_FIELD_NUMBER: _ClassVar[int]
+        receiver_name: str
+        receiver_avatar: str
+        name: str
+        avatar: str
+        group_name: str
+        group_avatar: str
+        inviter_id: str
+        source_type: int
+        target_type: int
+        target_id: str
+        receiver_id: str
+        result: int
+        processed_at: int
+        invite_at: int
+        invite_at_str: str
+        request_id: int
+        bot_name: str
+        bot_avatar: str
+        processor_name: str
+        note: str
+        is_vip: bool
+        def __init__(self, receiver_name: _Optional[str] = ..., receiver_avatar: _Optional[str] = ..., name: _Optional[str] = ..., avatar: _Optional[str] = ..., group_name: _Optional[str] = ..., group_avatar: _Optional[str] = ..., inviter_id: _Optional[str] = ..., source_type: _Optional[int] = ..., target_type: _Optional[int] = ..., target_id: _Optional[str] = ..., receiver_id: _Optional[str] = ..., result: _Optional[int] = ..., processed_at: _Optional[int] = ..., invite_at: _Optional[int] = ..., invite_at_str: _Optional[str] = ..., request_id: _Optional[int] = ..., bot_name: _Optional[str] = ..., bot_avatar: _Optional[str] = ..., processor_name: _Optional[str] = ..., note: _Optional[str] = ..., is_vip: _Optional[bool] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    REQUESTS_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    PENDING_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    requests: _containers.RepeatedCompositeFieldContainer[RequestListResponse.Request]
+    total: int
+    pending: int
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., requests: _Optional[_Iterable[_Union[RequestListResponse.Request, _Mapping]]] = ..., total: _Optional[int] = ..., pending: _Optional[int] = ...) -> None: ...

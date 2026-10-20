@@ -38,6 +38,14 @@ PROTO_ENDPOINTS: frozenset[str] = frozenset(
         "/v1/group/dismiss-group",
         "/v1/group-tag/members",
         "/v1/instruction/list",
+        "/v1/bot/board",
+        "/v1/bot/create-bot",
+        "/v1/bot/follower-list",
+        "/v1/bot/join-group-list",
+        "/v1/bot/bot-info",
+        "/v1/conversation/list",
+        "/v1/friend/address-book-list",
+        "/v1/friend/request-list",
     }
 )
 """已经实现的 protobuf 端点路径，生成器据此算覆盖率、写 ``implemented.txt``。"""
@@ -57,6 +65,12 @@ class V1ProtoAPI:
         """``v1/group-tag`` 的 protobuf 端点。"""
         self.instruction = InstructionProtoAPI(http)
         """``v1/instruction`` 的 protobuf 端点。"""
+        self.bot = BotProtoAPI(http)
+        """``v1/bot`` 的 protobuf 端点。"""
+        self.conversation = ConversationProtoAPI(http)
+        """``v1/conversation`` 的 protobuf 端点。"""
+        self.friend = FriendProtoAPI(http)
+        """``v1/friend`` 的 protobuf 端点。"""
 
 
 class ProtoGroupAPI:
@@ -179,3 +193,47 @@ class InstructionProtoAPI(ProtoGroupAPI):
     async def list_instructions(self, request: full_pb2.GetBotInstructionRequest) -> full_pb2.GetBotInstructionResponse:
         """获取机器人私聊指令。``POST /v1/instruction/list``"""
         return await self._call("/v1/instruction/list", request, full_pb2.GetBotInstructionResponse)
+
+
+class BotProtoAPI(ProtoGroupAPI):
+    """``v1/bot`` 的 protobuf 端点（5 个）。"""
+
+    async def info(self, request: full_pb2.BotInfoRequest) -> full_pb2.BotInfoResponse:
+        """获取机器人信息。``POST /v1/bot/bot-info``"""
+        return await self._call("/v1/bot/bot-info", request, full_pb2.BotInfoResponse)
+
+    async def board(self, request: full_pb2.BoardRequest) -> full_pb2.BoardResponse:
+        """获取机器人群聊看板。``POST /v1/bot/board``"""
+        return await self._call("/v1/bot/board", request, full_pb2.BoardResponse)
+
+    async def create_bot(self, request: full_pb2.CreateBotRequest) -> full_pb2.CreateBotResponse:
+        """创建机器人。``POST /v1/bot/create-bot``"""
+        return await self._call("/v1/bot/create-bot", request, full_pb2.CreateBotResponse)
+
+    async def follower_list(self, request: full_pb2.ListFollowerRequest) -> full_pb2.ListFollowerResponse:
+        """获取机器人使用者列表（分页在 ``request.data``）。``POST /v1/bot/follower-list``"""
+        return await self._call("/v1/bot/follower-list", request, full_pb2.ListFollowerResponse)
+
+    async def join_group_list(self, request: full_pb2.JoinGroupListRequest) -> full_pb2.JoinGroupListResponse:
+        """获取机器人加入的群聊列表。``POST /v1/bot/join-group-list``"""
+        return await self._call("/v1/bot/join-group-list", request, full_pb2.JoinGroupListResponse)
+
+
+class ConversationProtoAPI(ProtoGroupAPI):
+    """``v1/conversation`` 的 protobuf 端点（1 个）。"""
+
+    async def list_conversations(self, request: full_pb2.ConversationListRequest) -> full_pb2.ConversationListResponse:
+        """获取对话列表（``md5`` 用于增量）。``POST /v1/conversation/list``"""
+        return await self._call("/v1/conversation/list", request, full_pb2.ConversationListResponse)
+
+
+class FriendProtoAPI(ProtoGroupAPI):
+    """``v1/friend`` 的 protobuf 端点（2 个）。"""
+
+    async def address_book_list(self, request: full_pb2.AddressBookListRequest) -> full_pb2.AddressBookListResponse:
+        """获取通讯录。``POST /v1/friend/address-book-list``"""
+        return await self._call("/v1/friend/address-book-list", request, full_pb2.AddressBookListResponse)
+
+    async def request_list(self) -> full_pb2.RequestListResponse:
+        """获取好友申请/邀请列表。``POST /v1/friend/request-list``（无请求体）"""
+        return await self._call("/v1/friend/request-list", full_pb2.Empty(), full_pb2.RequestListResponse)

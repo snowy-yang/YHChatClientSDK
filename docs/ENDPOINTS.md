@@ -3,7 +3,7 @@
 > 本文件由 `tools/gen_endpoints.py` 从 yhchatAPI 文档站生成，请勿手工编辑。
 > 覆盖状态来自 `docs/implemented.txt`（每行一个已实现路径）；未列出即视为尚未实现。
 
-共 242 个端点，已实现 234 个。
+共 242 个端点，已实现 242 个。
 
 ## 按文档分组
 
@@ -76,13 +76,13 @@
 | [x] | `POST` | `/v1/bot/edit-setting-json` | 更改机器人设置 | user token |
 | [x] | `POST` | `/v1/bot/web-edit-bot` | 更改机器人信息 | user token |
 | [x] | `POST` | `/v1/bot/bot-info` | 获取机器人信息 | user token |
-| [ ] | `POST` | `/v1/bot/board` | 获取机器人群聊看板 | user token |
+| [x] | `POST` | `/v1/bot/board` | 获取机器人群聊看板 | user token |
 | [x] | `POST` | `/v1/bot/remove-follower` | 删除用户对机器人的添加 | user token |
 | [x] | `POST` | `/v1/bot/remove-group` | 删除群聊对机器人的添加 | user token |
 | [x] | `POST` | `/v1/bot/llm/llm-setting-list` | 获取可用AI模型列表 | user token |
 | [x] | `POST` | `/v1/bot/llm/llm-setting-ref-info` | 获取机器人大模型设置 | user token |
 | [x] | `POST` | `/v1/bot/reset-bot-token` | 重置机器人token | user token |
-| [ ] | `POST` | `/v1/bot/create-bot` | 创建机器人 | user token |
+| [x] | `POST` | `/v1/bot/create-bot` | 创建机器人 | user token |
 | [x] | `POST` | `/v1/bot/edit-subscribed-link` | 设置机器人消息订阅接口 | user token |
 | [x] | `POST` | `/v1/bot/get-user-settings-json` | 获取群聊内机器人设置 | user token |
 | [x] | `POST` | `/v1/bot/send-setting-json` | 群聊内机器人设置保存 | user token |
@@ -93,8 +93,8 @@
 | [x] | `POST` | `/v1/bot/group-permission-get` | 获取群机器人权限列表 | user token |
 | [x] | `POST` | `/v1/bot/llm/llm-setting-ref-params` | 获取智能体机器人参数参考 | user token |
 | [x] | `POST` | `/v1/bot/group-permission-edit` | 更改群机器人权限 | user token |
-| [ ] | `POST` | `/v1/bot/follower-list` | 获取使用者列表 | user token |
-| [ ] | `POST` | `/v1/bot/join-group-list` | 获取加入群聊列表 | user token |
+| [x] | `POST` | `/v1/bot/follower-list` | 获取使用者列表 | user token |
+| [x] | `POST` | `/v1/bot/join-group-list` | 获取加入群聊列表 | user token |
 
 ### `v1/captcha.md`
 
@@ -171,7 +171,7 @@
 | 状态 | 方法 | 路径 | 说明 | 鉴权 |
 | --- | --- | --- | --- | --- |
 | [x] | `POST` | `/v1/conversation/dismiss-notification` | 将对话设为已读 | user token |
-| [ ] | `POST` | `/v1/conversation/list` | 获取对话列表 | user token |
+| [x] | `POST` | `/v1/conversation/list` | 获取对话列表 | user token |
 | [x] | `POST` | `/v1/conversation/sort-change` | 更改对话排序 | user token |
 | [x] | `POST` | `/v1/conversation/remove` | 删除对话 | user token |
 
@@ -219,8 +219,8 @@
 | [x] | `POST` | `/v1/friend/delete-friend` | 删除用户/群聊/机器人 | user token |
 | [x] | `POST` | `/v1/friend/agree-apply` | 处理用户/群聊/机器人添加申请 | user token |
 | [x] | `POST` | `/v1/friend/ignore-apply` | 忽略申请 | user token |
-| [ ] | `POST` | `/v1/friend/address-book-list` | 获取通讯录 | user token |
-| [ ] | `POST` | `/v1/friend/request-list` | 获取申请/邀请列表 | user token |
+| [x] | `POST` | `/v1/friend/address-book-list` | 获取通讯录 | user token |
+| [x] | `POST` | `/v1/friend/request-list` | 获取申请/邀请列表 | user token |
 | [x] | `POST` | `/v1/friend/no-notify` | 设置会话免打扰 | user token |
 | [x] | `POST` | `/v1/friend/delete-request` | 删除好友/邀请请求 | user token |
 
@@ -305,7 +305,7 @@
 | [x] | `GET` | `/v1/misc/qiniu-token-group-disk` | 获取群文件上传 token | user token |
 | [x] | `GET` | `/v1/misc/setting` | 获取云端设置 | user token |
 | [x] | `GET` | `/v1/misc/gray-status` | 获取灰色状态 | user token |
-| [ ] | `GET` | `/v1/misc/auto-update` | 获取自动更新最新版本 | user token |
+| [x] | `GET` | `/v1/misc/auto-update` | 获取自动更新最新版本 | user token |
 
 ### `v1/mount-setting.md`
 

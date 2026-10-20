@@ -149,6 +149,19 @@ async def test_http_error_maps_to_transport_error(client: YHChatClient) -> None:
             "/v1/instruction/list",
             full_pb2.GetBotInstructionRequest(bot_id="b1"),
         ),
+        ("bot", "info", "/v1/bot/bot-info", full_pb2.BotInfoRequest(id="b1")),
+        ("bot", "board", "/v1/bot/board", full_pb2.BoardRequest(id="b1", chat_type=full_pb2.ChatType.group)),
+        ("bot", "create_bot", "/v1/bot/create-bot", full_pb2.CreateBotRequest(name="新机器人")),
+        ("bot", "follower_list", "/v1/bot/follower-list", full_pb2.ListFollowerRequest(bot_id="b1")),
+        ("bot", "join_group_list", "/v1/bot/join-group-list", full_pb2.JoinGroupListRequest(bot_id="b1")),
+        ("conversation", "list_conversations", "/v1/conversation/list", full_pb2.ConversationListRequest(md5="x")),
+        (
+            "friend",
+            "address_book_list",
+            "/v1/friend/address-book-list",
+            full_pb2.AddressBookListRequest(md5="x"),
+        ),
+        ("friend", "request_list", "/v1/friend/request-list", full_pb2.Empty()),
     ],
 )
 async def test_endpoint_paths(
@@ -157,8 +170,8 @@ async def test_endpoint_paths(
     group: Any = getattr(client.v1.proto, group_name)
     with respx.mock(base_url=BASE_URL) as mock:
         route = mock.post(path).mock(return_value=httpx.Response(200, content=status_response()))
-        if method == "get_self_medal":  # 这个端点没有请求体
-            await group.get_self_medal()
+        if method in {"get_self_medal", "request_list"}:  # 这两个端点没有请求体
+            await getattr(group, method)()
         else:
             await getattr(group, method)(request_message)
         assert route.called
@@ -226,3 +239,109 @@ async def test_instruction_list_parses_command(client: YHChatClient) -> None:
 
         assert response.data.command_name == "/help"
         assert response.data.command_id == 9
+
+
+async def test_bot_board_parses_board_message(client: YHChatClient) -> None:
+    payload = full_pb2.BoardResponse(
+        status=full_pb2.Status(code=1, msg="success"),
+        data=full_pb2.BotBoardMessage(
+            bot_id="b1",
+            chat_id="g1",
+            chat_type=full_pb2.ChatType.group,
+            content="看板内容",
+            content_type=full_pb2.ContentTypeTextOnly.TEXT_markdown,
+        ),
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/bot/board").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.bot.board(full_pb2.BoardRequest(id="b1", chat_type=full_pb2.ChatType.group))
+
+        assert response.data.content == "看板内容"
+        assert response.data.content_type == full_pb2.ContentTypeTextOnly.TEXT_markdown
+
+
+async def test_follower_list_keeps_server_typo_field(client: YHChatClient) -> None:
+    payload = full_pb2.ListFollowerResponse(
+        status=full_pb2.Status(code=1),
+        totol=3,
+        user=[full_pb2.ListFollowerResponse.User(user_id="u1", name="小明", is_vip=True)],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/bot/follower-list").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.bot.follower_list(full_pb2.ListFollowerRequest(bot_id="b1"))
+
+        assert response.totol == 3  # 线上字段名是 totol，不是 total
+        assert response.user[0].name == "小明"
+
+
+async def test_conversation_list_parses_at_data(client: YHChatClient) -> None:
+    payload = full_pb2.ConversationListResponse(
+        status=full_pb2.Status(code=1),
+        total=1,
+        md5="next",
+        data=[
+            full_pb2.ConversationListResponse.Data(
+                chat_id="g1",
+                chat_type=full_pb2.ChatType.group,
+                chat_content="最后一条",
+                unread_msg=2,
+                at=True,
+                at_data=full_pb2.ConversationListResponse.Data.AtData(
+                    mentioned_id="u1", mentioned_name="小明", msg_seq=9
+                ),
+            )
+        ],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/conversation/list").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.conversation.list_conversations(full_pb2.ConversationListRequest(md5="prev"))
+
+        assert response.md5 == "next"
+        assert response.data[0].at_data.mentioned_name == "小明"
+        assert response.data[0].unread_msg == 2
+
+
+async def test_address_book_parses_nested_lists(client: YHChatClient) -> None:
+    payload = full_pb2.AddressBookListResponse(
+        status=full_pb2.Status(code=1),
+        md5="next",
+        data=[
+            full_pb2.AddressBookListResponse.Data(
+                list_name="我的好友",
+                chat_type=full_pb2.ChatType.user,
+                data=[
+                    full_pb2.AddressBookListResponse.Data.DataList(
+                        chat_id="u1", name="小明", remark="备注", permisson_level=1
+                    )
+                ],
+            )
+        ],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/friend/address-book-list").mock(
+            return_value=httpx.Response(200, content=payload.SerializeToString())
+        )
+
+        response = await client.v1.proto.friend.address_book_list(full_pb2.AddressBookListRequest())
+
+        assert response.data[0].list_name == "我的好友"
+        assert response.data[0].data[0].remark == "备注"
+
+
+async def test_request_list_parses_requests(client: YHChatClient) -> None:
+    payload = full_pb2.RequestListResponse(
+        status=full_pb2.Status(code=1),
+        total=1,
+        pending=1,
+        requests=[full_pb2.RequestListResponse.Request(request_id=7, name="小明", note="想加你")],
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        mock.post("/v1/friend/request-list").mock(return_value=httpx.Response(200, content=payload.SerializeToString()))
+
+        response = await client.v1.proto.friend.request_list()
+
+        assert response.pending == 1
+        assert response.requests[0].request_id == 7

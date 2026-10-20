@@ -10,6 +10,7 @@ import pytest
 import respx
 
 from yhchat import YHChatClient
+from yhchat.api.v1._base import V1GroupAPI
 from yhchat.errors import APIError, YHChatError
 
 BASE_URL = "https://chat-go.jwzhd.com"
@@ -85,7 +86,12 @@ async def test_v1_api_error_is_raised(client: YHChatClient) -> None:
 
 
 async def test_every_generated_method_has_optional_params(client: YHChatClient) -> None:
-    groups = {name: value for name, value in vars(client.v1).items() if not name.startswith("_")}
+    # 只检查 JSON 分组；protobuf（client.v1.proto）要求传 request 消息，不在此列
+    groups = {
+        name: value
+        for name, value in vars(client.v1).items()
+        if not name.startswith("_") and isinstance(value, V1GroupAPI)
+    }
     assert len(groups) >= 30
 
     checked = 0

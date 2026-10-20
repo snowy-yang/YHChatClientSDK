@@ -95,6 +95,25 @@ class HttpTransport:
             raise TransportError(f"{method} {path} 请求失败: {exc}") from exc
         return self._parse(method, path, response)
 
+    async def request_text(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        headers: Mapping[str, str] | None = None,
+    ) -> str:
+        """发请求并返回原始文本响应（例如 XML）。"""
+        try:
+            response = await self._client.request(
+                method, path, params=self._auth_params(params), headers=self._auth_headers(headers)
+            )
+        except httpx.HTTPError as exc:
+            raise TransportError(f"{method} {path} 请求失败: {exc}") from exc
+        if response.status_code >= 400:
+            raise TransportError(f"{method} {path} 返回 HTTP {response.status_code}")
+        return response.text
+
     async def request_pb(
         self,
         method: str,

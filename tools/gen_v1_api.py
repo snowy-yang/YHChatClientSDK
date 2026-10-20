@@ -256,6 +256,7 @@ def render_init(groups: dict[str, list[Endpoint]]) -> str:
         '"""``v1`` 用户接口集合（token 放请求头）。由 ``tools/gen_v1_api.py`` 生成，勿手改。"""',
         "",
         "from ...transport import HttpTransport",
+        "from ._extra import V1ExtraAPI",
         "from ._proto import V1ProtoAPI",
     ]
     lines.extend(f"from .{module} import {_class_name(name)}" for name, module in zip(names, modules, strict=True))
@@ -272,6 +273,7 @@ def render_init(groups: dict[str, list[Endpoint]]) -> str:
             '    """``v1/*`` 用户接口：按文档分组挂属性，token 由传输层放进请求头。"""',
             "",
             "    def __init__(self, http: HttpTransport) -> None:",
+            "        self.extra = V1ExtraAPI(http)",
             "        self.proto = V1ProtoAPI(http)",
         ]
     )
@@ -321,31 +323,33 @@ def render_pending(skipped: list[Skipped], implemented: set[str]) -> str:
         "由 `tools/gen_v1_api.py` 生成：这些端点不是 JSON 收发，等 proto 层或单独处理。",
         "",
     ]
-    lines.extend(["| 端点 | 方法 | 文档 | 原因 |", "| --- | --- | --- | --- |"])
-    relevant = [
-        item
+    relevant = [        item
         for item in skipped
-        if item.reason not in {"open-apis 已手写", "与 v1 文档重复"} and item.path not in implemented
+        if item.reason not in {"open-apis 已手写", "与 v1 文档重复", "外部地址，不是云湖路径"}
+        and item.path not in implemented
     ]
-    lines.extend(
-        f"| `{item.path}` | {item.method} | {item.source} | {item.reason} |"
-        for item in sorted(relevant, key=lambda i: i.path)
-    )
+    if not relevant:
+        lines.append("文档里的 242 个端点都已实现（外部地址如七牛上传接口不计入云湖端点）。")
+    else:
+        lines.extend(["| 端点 | 方法 | 文档 | 原因 |", "| --- | --- | --- | --- |"])
+        lines.extend(
+            f"| `{item.path}` | {item.method} | {item.source} | {item.reason} |"
+            for item in sorted(relevant, key=lambda i: i.path)
+        )
     return "\n".join(lines).rstrip() + "\n"
 
 
-def proto_paths() -> set[str]:
-    """取手写 protobuf 端点路径：解析 ``api/v1/_proto.py`` 的 ``PROTO_ENDPOINTS``。
+def handwritten_paths() -> set[str]:
+    """取手写端点路径：解析 ``api/v1/_*.py`` 里的 ``*_ENDPOINTS`` 常量。
 
-    不 import 该模块，避免生成器依赖 protobuf 运行时。
+    不 import 这些模块，避免生成器依赖 protobuf 运行时。
     """
-    source = ROOT / "src/yhchat/api/v1/_proto.py"
-    if not source.exists():
-        return set()
-    match = re.search(
-        r"PROTO_ENDPOINTS[^=]*=\s*frozenset\(\s*\{(?P<body>.*?)\}", source.read_text(encoding="utf-8"), re.S
-    )
-    return set(re.findall(r'"(/v1/[^"]+)"', match.group("body"))) if match else set()
+    paths: set[str] = set()
+    for source in sorted((ROOT / "src/yhchat/api/v1").glob("_*.py")):
+        text = source.read_text(encoding="utf-8")
+        for match in re.finditer(r"\w*_ENDPOINTS[^=]*=\s*frozenset\(\s*\{(?P<body>.*?)\}", text, re.S):
+            paths.update(re.findall(r'"(/v1/[^"]+)"', match.group("body")))
+    return paths
 
 
 def update_implemented(paths: list[str]) -> int:
@@ -383,7 +387,7 @@ def main() -> int:
         (args.out / f"{_module_name(group)}.py").write_text(render_group(group, items), encoding="utf-8")
     (args.out / "__init__.py").write_text(render_init(groups), encoding="utf-8")
     (args.out / "_base.py").write_text(render_base(), encoding="utf-8")
-    implemented = {endpoint.path for endpoint in endpoints} | proto_paths()
+    implemented = {endpoint.path for endpoint in endpoints} | handwritten_paths()
     pending = ROOT / "docs/v1_pending.md"
     pending.write_text(render_pending(skipped, implemented), encoding="utf-8")
     added = update_implemented(sorted(implemented))
