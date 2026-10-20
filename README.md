@@ -1,25 +1,26 @@
 # YHChatClientSDK
 
-云湖（YHChat）的**非官方** Python SDK。
+云湖（YHChat）的**非官方** Python SDK。异步、强类型（pydantic v2），按 [yhchatAPI 文档站](https://github.com/snowy-yang/yhchatAPI) 逐端点实现。
 
-> 本项目为社区实现，与云湖官方无关。接口行为以[云湖开放平台](https://www.yhchat.com/)的实际返回为准。
+> 本项目与云湖官方无关；接口行为以云湖实际返回为准。
 
 ## 项目状态
 
-| 分支 | 内容 |
+| 能力 | 状态 |
 | --- | --- |
-| `main` | 文档、许可证与发布准备（当前分支） |
-| `v1.5` | 新版 SDK 代码，开发中 |
-| `v1` | 旧版 SDK 代码 |
+| `/open-apis/v1` 机器人接口（发送/批量/流式/编辑/撤回/消息列表） | 已实现 |
+| 图片 / 视频 / 文件上传（文档未收录，云端实际提供） | 已实现 |
+| 文档站 `v1/*`、`web/v1/*` 的其余端点（共 242 个） | 规划中 |
+| Satori v1 协议端（聊天子集） | 规划中 |
+| gRPC 层 | 规划中 |
+| HTTP/2 ASGI 服务与 CLI | 规划中 |
 
-- 新版尚未发布到 PyPI，仓库里也还没有 `pyproject.toml`，需要 clone 后直接使用。
-- 新版代码尚未经过完整测试，接口可能随云湖开放平台调整而变化。
+端点覆盖清单见 [`docs/ENDPOINTS.md`](docs/ENDPOINTS.md)，由 `tools/gen_endpoints.py` 从文档站生成，是覆盖度的唯一起点。
 
 ## 环境要求
 
-- Python ≥ 3.12，版本由 `.python-version` 固定为 3.12
-- 依赖声明要求 3.12 起，以便使用 `type` 语句、PEP 695 泛型、`typing.override` 等新特性
-- 包管理与依赖：[uv](https://docs.astral.sh/uv/)，依赖声明在 `pyproject.toml`，用 `uv sync` 安装
+- Python ≥ 3.12（使用 `type` 别名、PEP 695 泛型、`typing.override` 等新语法）
+- 依赖与虚拟环境用 [uv](https://docs.astral.sh/uv/) 管理
 
 ## 获取代码
 
@@ -29,128 +30,106 @@ cd YHChatClientSDK
 uv sync
 ```
 
-实现代码目前在 `v1.5` 分支（`git switch v1.5`），`main` 分支存放文档与发布准备。
+## 快速开始
+
+```python
+import asyncio
+
+from yhchat import TextSegment, YHChatClient
+
+
+async def main() -> None:
+    async with YHChatClient("机器人 token") as client:
+        info = await client.bot.message.send("group", "群 ID", TextSegment(text="Hello, 云湖"))
+        print(info.msg_id)
+
+
+asyncio.run(main())
+```
+
+### 常用操作
+
+```python
+from yhchat import ImageSegment, MarkdownSegment, TextSegment
+
+# 批量发送（同一内容发给多个会话）
+await client.bot.message.batch_send(["群 1", "群 2"], "group", TextSegment(text="广播"))
+
+# 上传后发送
+key = await client.bot.upload.image(data, filename="cat.png", mime_type="image/png")
+await client.bot.message.send("group", "群 ID", ImageSegment(key=key))
+
+# 流式发送（chunked）
+async def chunks():
+    yield "正在"
+    yield "生成……"
+
+await client.bot.message.send_stream("group", "群 ID", "text", chunks())
+
+# 编辑 / 撤回：recv_id、recv_type 可省略，客户端从消息记录里补全
+await client.bot.message.edit(info.msg_id, MarkdownSegment(text="**改后**"))
+await client.bot.message.recall(info.msg_id)
+
+# 拉取消息列表
+page = await client.bot.message.list("群 ID", "group", before=20)
+for message in page.messages:
+    print(message.sender_id, message.content_type, message.content.text)
+```
+
+`client.records` 是 `msgId → 会话信息` 的 LRU 缓存（进程内，不落盘），编辑/撤回时用它补全 `recvId`/`recvType`。
+
+### 逃生口
+
+尚未封装的端点可以直接调用，返回完整响应体：
+
+```python
+payload = await client.call("POST", "/open-apis/v1/bot/send", json={"recvId": "群 ID", "recvType": "group"})
+```
+
+## 错误处理
+
+- `APIError`：云湖返回 `code != 1` 或 HTTP 4xx/5xx，带 `code` / `message` / `endpoint`。
+- `TransportError`：网络失败、超时、返回体不是 JSON、响应缺少必需字段。
 
 ## 开发
 
-`ruff`（lint + format）与 `pyright`（类型检查）作为 dev 依赖装在项目内的 `.venv` 中：
-
 ```bash
-uv run ruff check .     # 静态检查
-uv run ruff format .    # 格式化
-uv run pyright          # 类型检查
+uv sync                              # 同步 .venv（首次会装 Python 3.12）
+uv run ruff check .                  # lint
+uv run ruff format .                 # format
+uv run pyright                       # 类型检查（strict）
+uv run pytest -q                     # 测试
+uv run python tools/gen_endpoints.py # 重新生成端点清单
 ```
 
-相关配置在 `pyproject.toml` 的 `[tool.ruff]` / `[tool.pyright]`；Markdown 里的代码块不参与 `ruff format`。
-
-## 快速开始
-
-### 发送消息
-
-```python
-from openapi import Openapi
-from message import MessageSegment, MessageType
-
-client = Openapi("你的机器人 token")
-
-client.send_message(
-    recv_type="group",  # 会话类型，取值见云湖开放平台文档
-    recv_id="会话 ID",
-    message=MessageSegment(type=MessageType.text, text="Hello, 云湖"),
-)
-```
-
-- `message` 可以是单个 `MessageSegment`，也可以是 `MessageSegment` 列表，按顺序逐条发送。
-- `image` / `video` / `file` 类型会先调用上传接口，再用返回的 `imageKey` / `videoKey` / `fileKey` 发送。
-- `markdown` / `html` 目前都按 `text` 字段提交。
-- 返回值是云湖返回的 `messageInfo` 列表。
-
-### 订阅事件
-
-在云湖开放平台配置 HTTP 回调地址后，用 `subscription.py` 起一个 HTTP 服务接收事件：
-
-```python
-from bottle import run
-from subscription import app, event_emitter
-
-@event_emitter.on("message.receive.normal")
-def on_normal(header, event):
-    print(header.event_id, event.message.msg_id)
-
-run(app, host="0.0.0.0", port=8080)
-```
-
-- 目前只处理 `message.receive.normal`（普通消息）和 `message.receive.instruction`（指令消息）两种事件，其余事件直接返回 200。
-- 事件回调通过 `pyee` 的 `ExecutorEventEmitter` 投递到线程池执行，单个回调阻塞不影响 HTTP 响应。
-- 接收到的消息会自动写入消息记录，供后续编辑、删除时复用会话信息。
-
-## 数据存储
-
-导入 `message.py` 时会用 SQLAlchemy 在当前工作目录创建 SQLite 数据库 `message.db`，表 `message` 记录 `msg_id → recv_type / recv_id` 的映射。
-该记录用于 `edit_message` / `delete_message` 未显式传入 `recv_type`、`recv_id` 时补全会话信息，删除文件后记录会丢失。
-
-## 功能进度
-
-### 事件
-
-- [x] 普通消息事件
-- [x] 指令消息事件
-- [ ] 关注机器人事件
-- [ ] 取消关注机器人事件
-- [ ] 加入群事件
-- [ ] 退出群事件
-- [ ] 消息中按钮点击事件
-
-### 接口
-
-- [x] 发送消息
-- [ ] 编辑消息（已有实现，未测试）
-- [ ] 删除消息（已有实现，未测试）
-- [ ] 拉取消息（已有实现，未测试）
-- [ ] 批量发送消息
-- [ ] 设置用户看板
-- [ ] 设置全局看板
-- [ ] 取消用户看板
-- [ ] 取消全局看板
+`tools/gen_endpoints.py` 默认读取 `~/Default/yhchatAPI/src/api`（文档站浅克隆），可用 `--docs` 指定。
 
 ## 目录结构
 
 ```text
 .
-├── AGENT.md         # 给 AI 助手与贡献者的项目说明
-├── LICENSE          # MPL-2.0
-├── README.md
-├── pyproject.toml   # 依赖声明 + ruff / pyright 配置
-├── .python-version  # 固定 Python 3.12
-├── .gitignore
-└── uv.lock          # uv 锁文件
+├── src/yhchat/
+│   ├── client.py         # YHChatClient：token、传输层、接口分组
+│   ├── transport.py      # {code,msg,data} 解析、token 注入、异常映射
+│   ├── errors.py         # APIError / TransportError
+│   ├── records.py        # msgId → 会话信息 的 LRU 缓存
+│   ├── models/           # pydantic 模型与消息段
+│   └── api/bot.py        # /open-apis/v1 机器人接口
+├── tools/gen_endpoints.py
+├── docs/ENDPOINTS.md     # 生成的端点清单（含覆盖状态）
+├── tests/
+├── pyproject.toml        # 依赖 + ruff / pyright / pytest 配置
+├── AGENT.md              # 给 AI 助手与贡献者的实现约定
+└── LICENSE               # MPL-2.0
 ```
 
-`v1.5` 分支上的实现代码：
+## 已知不一致
 
-```text
-├── message.py       # 数据模型（MessageSegment / MessageType / Button / MessageInfo）与消息记录
-├── openapi.py       # Openapi 类：主动调用云湖开放接口
-└── subscription.py  # Webhook 事件订阅（bottle + pyee）
-```
-
-## 分支说明
-
-- `main`：文档、许可证与发布准备。
-- `v1.5`：新版实现，日常开发分支。
-- `v1`：旧版实现。
+- 文档把按钮 `actionType` 的 1/2 注释写反了；本 SDK 按示例语义处理：**1=跳转（带 url）、2=复制（带 value）**。
+- `/bot/messages` 文档用 `message-id` 查询参数，旧版实现用的是 `msg-id`，本 SDK 按文档实现，待用真实 token 验证。
+- 三个上传接口不在文档站里，字段名（`imageKey` / `videoKey` / `fileKey`）来自旧版实现，待验证。
+- `v1/*` 接口只有 proto 定义、没有 JSON 示例，字段命名（snake_case）属于假设。
 
 ## 许可证
 
-本项目使用 [Mozilla Public License 2.0](LICENSE)（SPDX：`MPL-2.0`）。
-分发源码形式时，请保留 `LICENSE` 中的条款说明，并按下述方式标注文件级许可：
-
-```text
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at https://mozilla.org/MPL/2.0/.
-```
-
-## 链接
-
-- 云湖官网：[云湖社交](https://www.yhchat.com/)
+[Mozilla Public License 2.0](LICENSE)（SPDX：`MPL-2.0`）。

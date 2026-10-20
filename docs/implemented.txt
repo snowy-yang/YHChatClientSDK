@@ -1,0 +1,9 @@
+/open-apis/v1/bot/send
+/open-apis/v1/bot/batch_send
+/open-apis/v1/bot/send-stream
+/open-apis/v1/bot/edit
+/open-apis/v1/bot/recall
+/open-apis/v1/bot/messages
+/open-apis/v1/image/upload
+/open-apis/v1/video/upload
+/open-apis/v1/file/upload

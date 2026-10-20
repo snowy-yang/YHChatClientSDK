@@ -1,0 +1,1699 @@
+{
+  "count": 242,
+  "endpoints": [
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/send",
+      "title": "机器人发送信息",
+      "auth": "bot token"
+    },
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/batch_send",
+      "title": "机器人批量发送信息",
+      "auth": "bot token"
+    },
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/send-stream",
+      "title": "机器人流式发送信息",
+      "auth": "bot token"
+    },
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/edit",
+      "title": "机器人编辑信息",
+      "auth": "bot token"
+    },
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/recall",
+      "title": "机器人撤回信息",
+      "auth": "bot token"
+    },
+    {
+      "source": "bot/v1/bot.md",
+      "method": "POST",
+      "path": "/open-apis/v1/bot/messages",
+      "title": "机器人获取信息列表",
+      "auth": "bot token"
+    },
+    {
+      "source": "v1/beta.md",
+      "method": "POST",
+      "path": "/v1/beta/info",
+      "title": "获取内测状态",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/banner",
+      "title": "机器人商店banner",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/new-list",
+      "title": "机器人商店列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/bot-detail",
+      "title": "使用该机器人的群组",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/bot-group-list",
+      "title": "获取创建的所有机器人信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/edit-setting-json",
+      "title": "更改机器人设置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/web-edit-bot",
+      "title": "更改机器人信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/bot-info",
+      "title": "获取机器人信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/board",
+      "title": "获取机器人群聊看板",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/remove-follower",
+      "title": "删除用户对机器人的添加",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/remove-group",
+      "title": "删除群聊对机器人的添加",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/llm-setting-list",
+      "title": "获取可用AI模型列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/llm-setting-ref-info",
+      "title": "获取机器人大模型设置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/reset-bot-token",
+      "title": "重置机器人token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/create-bot",
+      "title": "创建机器人",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/edit-subscribed-link",
+      "title": "设置机器人消息订阅接口",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/get-user-settings-json",
+      "title": "获取群聊内机器人设置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/send-setting-json",
+      "title": "群聊内机器人设置保存",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/clean-content",
+      "title": "智能体机器人清除上下文",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/knowledge/list",
+      "title": "获取智能体机器人知识库",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/knowledge/create",
+      "title": "智能体机器人上传知识文件",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/console/my-bots",
+      "title": "获取我创建的机器人",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/group-permission-get",
+      "title": "获取群机器人权限列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/llm/llm-setting-ref-params",
+      "title": "获取智能体机器人参数参考",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/group-permission-edit",
+      "title": "更改群机器人权限",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/follower-list",
+      "title": "获取使用者列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/join-group-list",
+      "title": "获取加入群聊列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/captcha.md",
+      "method": "POST",
+      "path": "/v1/captcha/get",
+      "title": "获取滑动验证码",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/chat-background.md",
+      "method": "POST",
+      "path": "/v1/chat-background/edit",
+      "title": "设置聊天背景",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/chat-background.md",
+      "method": "POST",
+      "path": "/v1/chat-background/list",
+      "title": "获取背景设置列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/check.md",
+      "method": "POST",
+      "path": "/v1/check/check-version-mobile",
+      "title": "获取云湖新版本（Android 版本）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/check.md",
+      "method": "POST",
+      "path": "/v1/check/get-latest-version",
+      "title": "获取云湖新版本（Android 版本）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/check.md",
+      "method": "POST",
+      "path": "/v1/check/check-version",
+      "title": "获取云湖新版本（Windows 版本）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/coin.md",
+      "method": "POST",
+      "path": "/v1/coin/shop/product-recommend",
+      "title": "商品获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/coin.md",
+      "method": "POST",
+      "path": "/v1/coin/task/my-task-info",
+      "title": "我的金币任务获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/coin.md",
+      "method": "POST",
+      "path": "/v1/coin/shop/product-detail",
+      "title": "获取商品详情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/coin.md",
+      "method": "POST",
+      "path": "/v1/coin/task/raffle",
+      "title": "让金币机器人给你发领金币信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/create",
+      "title": "创建文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/delete",
+      "title": "删除文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-reward",
+      "title": "打赏文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/comment/comment-reward",
+      "title": "打赏文章评论",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-like",
+      "title": "点赞/取消点赞文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-collect",
+      "title": "收藏/取消收藏文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/edit",
+      "title": "编辑文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-list",
+      "title": "获取文章列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/info",
+      "title": "分区信息获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/following-ba-list",
+      "title": "获取分区列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/reward-record",
+      "title": "获取文章打赏记录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/comment/comment",
+      "title": "评论文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/comment/comment-list",
+      "title": "获取文章评论列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/search",
+      "title": "查找文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/set-black-list",
+      "title": "屏蔽指定用户文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/black-list",
+      "title": "获取屏蔽指定用户文章列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-detail",
+      "title": "查看文章详情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/my-post-list",
+      "title": "查看自己发布的文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/group-list",
+      "title": "查看分区下绑定的群聊列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/forward",
+      "title": "分享文章分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/manage",
+      "title": "管理文章分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/create",
+      "title": "创建文章分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/edit",
+      "title": "编辑文章分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/delete",
+      "title": "删除文章分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/create-draft",
+      "title": "创建文章草稿",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/get-draft",
+      "title": "获取文章草稿信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/cancel-draft",
+      "title": "删除文章草稿",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/user-follow-ba",
+      "title": "关注分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/user-unfollow-ba",
+      "title": "取关分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/edit-sticky",
+      "title": "置顶/取消置顶文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/follower-list",
+      "title": "获取分区关注者列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/manage-setting",
+      "title": "设置分区管理员",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/ba/list-by-create",
+      "title": "获取用户创建的分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-list-recommend",
+      "title": "获取推荐文章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/report",
+      "title": "举报文章/评论",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/conversation.md",
+      "method": "POST",
+      "path": "/v1/conversation/dismiss-notification",
+      "title": "将对话设为已读",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/conversation.md",
+      "method": "POST",
+      "path": "/v1/conversation/list",
+      "title": "获取对话列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/conversation.md",
+      "method": "POST",
+      "path": "/v1/conversation/sort-change",
+      "title": "更改对话排序",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/conversation.md",
+      "method": "POST",
+      "path": "/v1/conversation/remove",
+      "title": "删除对话",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/create-folder",
+      "title": "创建群网盘文件夹",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/file-list",
+      "title": "获取群网盘文件列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/file-size",
+      "title": "获取群网盘文件总大小",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/upload-file",
+      "title": "上传文件",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/rename",
+      "title": "更改文件名",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/disk.md",
+      "method": "POST",
+      "path": "/v1/disk/remove",
+      "title": "删除文件",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/event.md",
+      "method": "POST",
+      "path": "/v1/event/list",
+      "title": "获取机器人事件订阅配置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/event.md",
+      "method": "POST",
+      "path": "/v1/event/edit",
+      "title": "机器人消息订阅设置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/expression.md",
+      "method": "POST",
+      "path": "/v1/expression/list",
+      "title": "获取个人表情收藏",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/expression.md",
+      "method": "POST",
+      "path": "/v1/expression/create",
+      "title": "添加图片到个人表情收藏",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/expression.md",
+      "method": "POST",
+      "path": "/v1/expression/delete",
+      "title": "删除个人表情收藏中的表情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/expression.md",
+      "method": "POST",
+      "path": "/v1/expression/topping",
+      "title": "置顶个人表情收藏中的表情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/expression.md",
+      "method": "POST",
+      "path": "/v1/expression/add",
+      "title": "添加已有表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/file.md",
+      "method": "POST",
+      "path": "/v1/file/send",
+      "title": "发送超级文件分享申请",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/file.md",
+      "method": "POST",
+      "path": "/v1/file/reply",
+      "title": "拒绝超级文件分享",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/file.md",
+      "method": "POST",
+      "path": "/v1/file/offer",
+      "title": "建立超级文件分享",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/apply",
+      "title": "添加用户/群聊/机器人",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/delete-friend",
+      "title": "删除用户/群聊/机器人",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/agree-apply",
+      "title": "处理用户/群聊/机器人添加申请",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/ignore-apply",
+      "title": "忽略申请",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/address-book-list",
+      "title": "获取通讯录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/request-list",
+      "title": "获取申请/邀请列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/no-notify",
+      "title": "设置会话免打扰",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/friend.md",
+      "method": "POST",
+      "path": "/v1/friend/delete-request",
+      "title": "删除好友/邀请请求",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/list",
+      "title": "获取群组标签列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/relate",
+      "title": "关联用户标签",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/relate-cancel",
+      "title": "取消关联用户标签",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/edit",
+      "title": "编辑群组标签",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/create",
+      "title": "新增群组标签",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/delete",
+      "title": "删除群组标签",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group-tag.md",
+      "method": "POST",
+      "path": "/v1/group-tag/members",
+      "title": "获取标签绑定的用户列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/info",
+      "title": "获取群聊信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/list-member",
+      "title": "获取群成员列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/live-room",
+      "title": "获取群聊语音房间",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/instruction-list",
+      "title": "获取群指令列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/invite",
+      "title": "邀请加入群聊",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/remove-member",
+      "title": "踢出用户",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/gag-member",
+      "title": "禁言用户",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "GET",
+      "path": "/v1/group/category",
+      "title": "获取群聊推荐分类",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/recommend/list",
+      "title": "搜索推荐群聊",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/msg-type-limit",
+      "title": "设置消息类型限制",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-group",
+      "title": "编辑群聊信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/bot-list",
+      "title": "获取群机器人列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/remove-bot",
+      "title": "移除群聊内机器人",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-my-group-nickname",
+      "title": "设置我的群昵称",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-group-keyword",
+      "title": "设置群口令",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/info-add-friend",
+      "title": "获取群口令关联群聊",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-auto-delete-message",
+      "title": "设置群聊消息自动销毁时间",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-stop-member-upload-group-file",
+      "title": "设置禁止群成员上传到群云盘",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/create-group",
+      "title": "创建群聊",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/dismiss-group",
+      "title": "解散群聊",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/live-room",
+      "title": "获取语音房间列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/agree-invite",
+      "title": "同意进群申请、同意机器人进群",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/member-is-removed",
+      "title": "用户被是否被该群踢过",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/switch",
+      "title": "加入群推荐",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "GET",
+      "path": "/v1/group/event-sse",
+      "title": "连接群聊 SSE",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/edit-shop-entry",
+      "title": "编辑商城入口状态",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/instruction.md",
+      "method": "POST",
+      "path": "/v1/instruction/web-list",
+      "title": "获取机器人指令列表（网页控制台）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/instruction.md",
+      "method": "POST",
+      "path": "/v1/instruction/create",
+      "title": "创建机器人指令",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/instruction.md",
+      "method": "POST",
+      "path": "/v1/instruction/list",
+      "title": "获取机器人私聊指令",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/add",
+      "title": "获取语音频道进入 token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/close",
+      "title": "关闭语音频道",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/hang_up",
+      "title": "挂断语音频道",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/room-info",
+      "title": "获取语音频道信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/title-edit",
+      "title": "编辑语音频道标题",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/get-calling",
+      "title": "获取正在发起的通话",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/live.md",
+      "method": "POST",
+      "path": "/v1/live/stream-info",
+      "title": "获取推流信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/menu.md",
+      "method": "POST",
+      "path": "/v1/menu/event",
+      "title": "触发快捷菜单事件",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/configure-distribution",
+      "title": "获取功能路由",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/qiniu-token",
+      "title": "获取图片上传 token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/qiniu-token-audio",
+      "title": "获取音频上传 token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/qiniu-token2",
+      "title": "获取文件上传 token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/qiniu-token-video",
+      "title": "获取视频上传token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/qiniu-token-group-disk",
+      "title": "获取群文件上传 token",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/setting",
+      "title": "获取云端设置",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/gray-status",
+      "title": "获取灰色状态",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/misc.md",
+      "method": "GET",
+      "path": "/v1/misc/auto-update",
+      "title": "获取自动更新最新版本",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/mount-setting.md",
+      "method": "POST",
+      "path": "/v1/mount-setting/create",
+      "title": "添加群WebDAV挂载",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/mount-setting.md",
+      "method": "POST",
+      "path": "/v1/mount-setting/delete",
+      "title": "删除群WebDAV挂载",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/send-message",
+      "title": "发送信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/edit-message",
+      "title": "编辑消息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/list-message-by-seq",
+      "title": "按消息序列列出消息（不包含指定消息）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/list-message",
+      "title": "列出消息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/list-message-by-mid-seq",
+      "title": "按消息ID列出消息（包含消息id指定的消息）",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/list-message-edit-record",
+      "title": "获取信息历史编辑内容",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/button-report",
+      "title": "发送按钮点击事件",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/recall-msg",
+      "title": "撤回信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/recall-msg-batch",
+      "title": "批量撤回消息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/file-download-record",
+      "title": "文件消息下载记录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/delete",
+      "title": "删除消息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/msg.md",
+      "method": "POST",
+      "path": "/v1/msg/a2ui-form-report",
+      "title": "触发A2UI表单提交信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/report.md",
+      "method": "POST",
+      "path": "/v1/report/create",
+      "title": "提交举报",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/search.md",
+      "method": "POST",
+      "path": "/v1/search/home-search",
+      "title": "群聊首页搜索",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/search.md",
+      "method": "POST",
+      "path": "/v1/search/chat-search",
+      "title": "聊天记录搜索",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/share.md",
+      "method": "POST",
+      "path": "/v1/share/info",
+      "title": "分享链接获取群聊信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/share.md",
+      "method": "POST",
+      "path": "/v1/share/create",
+      "title": "创建分享链接",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/list",
+      "title": "获取收藏表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/detail",
+      "title": "查看表情包详情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/add",
+      "title": "添加表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/remove-sticker-pack",
+      "title": "移除收藏表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/sort",
+      "title": "更改收藏表情包的排序",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/create-pack",
+      "title": "创建表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/rename-pack",
+      "title": "重命名表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/add-sticker",
+      "title": "添加表情至表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/delete-pack",
+      "title": "删除表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/import-pack",
+      "title": "导入表情包",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/rename-sticker",
+      "title": "重命名表情包里的表情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticker.md",
+      "method": "POST",
+      "path": "/v1/sticker/remove-sticker",
+      "title": "删除表情",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticky.md",
+      "method": "POST",
+      "path": "/v1/sticky/list",
+      "title": "首页置顶信息获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticky.md",
+      "method": "POST",
+      "path": "/v1/sticky/add",
+      "title": "置顶会话",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticky.md",
+      "method": "POST",
+      "path": "/v1/sticky/delete",
+      "title": "取消置顶会话",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/sticky.md",
+      "method": "POST",
+      "path": "/v1/sticky/topping",
+      "title": "把其中一个已置顶会话移到最前",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/captcha",
+      "title": "获取人机验证图片",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/verification-login",
+      "title": "短信验证码登录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "GET",
+      "path": "/v1/user/info",
+      "title": "获取用户自身信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/get-user",
+      "title": "获取用户信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/medal",
+      "title": "获取自身勋章",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/edit-nickname",
+      "title": "更改自身名称",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/edit-avatar",
+      "title": "更改自身头像",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/email-login",
+      "title": "用户邮箱密码登录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/logout",
+      "title": "退出登录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/recommend-category-list",
+      "title": "获取发现群聊分区",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/recommend-list",
+      "title": "获取发现群聊列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/recommend",
+      "title": "获取机器人推荐列表",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/module-ignore-info",
+      "title": "模块忽略信息获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/module-ignore",
+      "title": "设置自定义模块",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/notification-status",
+      "title": "获取通知状态",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/notification-info",
+      "title": "获取通知注册信息",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/gold-coin-increase-decrease-record",
+      "title": "金币增减记录",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/bing-phone",
+      "title": "绑定手机号",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/bing-email",
+      "title": "绑定邮箱",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/change-phone-check",
+      "title": "更改绑定手机号",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/change-email-check",
+      "title": "更改绑定邮箱",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/forget-password",
+      "title": "更改登录密码",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/save-user-data",
+      "title": "修改自身个人资料",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/get-user-data",
+      "title": "获取自身个人资料",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/get-user-show-adv",
+      "title": "获取用户显示广告",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/save-user-remarks",
+      "title": "设置好友备注",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/cancel-user",
+      "title": "注销账号",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/user.md",
+      "method": "POST",
+      "path": "/v1/user/device-offline",
+      "title": "下线设备",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/verification.md",
+      "method": "POST",
+      "path": "/v1/verification/get-verification-code",
+      "title": "获取短信验证码",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/verification.md",
+      "method": "POST",
+      "path": "/v1/verification/get-email-verification-code",
+      "title": "获取邮箱验证码",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/vip.md",
+      "method": "POST",
+      "path": "/v1/vip/vip-product-list",
+      "title": "vip价格获取",
+      "auth": "user token"
+    },
+    {
+      "source": "v1/vip.md",
+      "method": "GET",
+      "path": "/v1/vip/vip-benefits-list",
+      "title": "vip特权获取",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/bot-info",
+      "title": "获取机器人信息",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/bot.md",
+      "method": "POST",
+      "path": "/v1/bot/bot-link-reset",
+      "title": "恢复机器人订阅",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/common.md",
+      "method": "GET",
+      "path": "/v1/common/get-version",
+      "title": "获取全平台最新版本",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/c/following-ba-list",
+      "title": "获取分区列表",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/posts/post-list",
+      "title": "获取文章列表",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/community.md",
+      "method": "POST",
+      "path": "/v1/community/c/info",
+      "title": "获取分区信息",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/document.md",
+      "method": "GET",
+      "path": "/v1/document/menus",
+      "title": "获取开放文档菜单选项",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/document.md",
+      "method": "GET",
+      "path": "/v1/document/detail",
+      "title": "获取开放文档(Markdown版本)",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/group.md",
+      "method": "POST",
+      "path": "/v1/group/group-info",
+      "title": "获取群聊信息",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/misc.md",
+      "method": "POST",
+      "path": "/v1/misc/updates",
+      "title": "获取更新日志",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/rss.md",
+      "method": "GET",
+      "path": "/v1/rss/recommend-list",
+      "title": "获取 RSS 推荐大全",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/rss.md",
+      "method": "POST",
+      "path": "/v1/rss/recommend-apply",
+      "title": "提交 RSS",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/user.md",
+      "method": "GET",
+      "path": "/v1/user/info",
+      "title": "获取用户自身信息",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/user.md",
+      "method": "GET",
+      "path": "/v1/user/homepage",
+      "title": "获取用户主页信息",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/user.md",
+      "method": "GET",
+      "path": "/v1/user/get-token",
+      "title": "复制用户token",
+      "auth": "user token"
+    },
+    {
+      "source": "web/v1/user.md",
+      "method": "GET",
+      "path": "/v1/user/gold-coin-increase-decrease-record",
+      "title": "金币增减记录",
+      "auth": "user token"
+    }
+  ]
+}

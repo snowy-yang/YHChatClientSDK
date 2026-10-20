@@ -8,22 +8,44 @@ license = "MPL-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "hhhhhge", email = "2173376743@qq.com" }]
 dependencies = [
-    "bottle>=0.13",
-    "httpx>=0.27",
-    "pydantic>=2.7",
-    "pyee>=12.0",
-    "sqlalchemy>=2.0",
+    "httpx[http2]>=0.28",
+    "pydantic>=2.9",
+]
+
+[project.optional-dependencies]
+# HTTP/2 服务端与 Satori 协议端（自研实现）
+server = [
+    "granian>=2.0",
+    "starlette>=0.41",
+    "websockets>=13",
+]
+# gRPC 门面
+grpc = [
+    "grpcio>=1.70",
+    "protobuf>=5.28",
 ]
 
 [dependency-groups]
 dev = [
+    "grpcio-tools>=1.70",
     "pyright>=1.1.400",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "respx>=0.22",
     "ruff>=0.14",
 ]
 
-[tool.uv]
-# 当前是脚本式布局（message.py / openapi.py / subscription.py），暂不作为可安装包构建
-package = false
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "yhchat"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["error"]
 
 [tool.ruff]
 line-length = 120
@@ -32,7 +54,7 @@ extend-exclude = [".venv", "*.md"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF", "PERF", "TCH", "RET", "PIE", "ASYNC", "LOG", "G", "PYI"]
-ignore = ["E501"]
+ignore = ["E501", "RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.pyupgrade]
 # 运行时注解也按 py312 现代化（pydantic v2 支持 PEP 604/585）
@@ -45,7 +67,7 @@ known-first-party = ["yhchat"]
 docstring-code-format = true
 
 [tool.pyright]
-include = ["."]
+include = ["src", "tests", "tools"]
 exclude = [".venv", "**/__pycache__"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
