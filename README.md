@@ -101,8 +101,30 @@ async with YHChatClient("机器人 token", user_token="用户 token") as client:
   未逐字段建模；参数用 `body=...` 透传，GET 用 `params=...`。
 - 生成器：`uv run python tools/gen_v1_api.py`（读 `~/Default/yhchatAPI/src/api`，写 `src/yhchat/api/v1/`，
   并把已实现路径合并进 `docs/implemented.txt`）。生成物勿手改，改规则改生成器。
-- 未实现的 31 个端点（protobuf 收发 / XML / 文档缺前导斜杠）在 `docs/v1_pending.md`；
-  覆盖率见 `docs/ENDPOINTS.md`。
+- 未实现的 21 个端点（其余 protobuf 分组 / XML）在 `docs/v1_pending.md`；覆盖率见 `docs/ENDPOINTS.md`。
+
+### protobuf 端点
+
+`v1` 里 29 个端点用 protobuf 收发（`msg`、`group`、`user`、`bot` 等），它们的错误码在消息体的 `Status` 里，
+所以单独挂在 `client.v1.proto`：
+
+```python
+from yhchat.proto._pb import full_pb2
+
+response = await client.v1.proto.msg.send_message(
+    full_pb2.SendMsgRequest(
+        chat_id="群 ID",
+        chat_type=full_pb2.ChatType.group,
+        content_type=full_pb2.ContentType.text,
+        content=full_pb2.MsgContent(text="你好"),
+    )
+)
+print(response.status.code, response.status.msg)
+```
+
+- 消息定义在 `proto/yhchat/proto/_pb/full.proto`：**只按字段号手写需要的最小子集**（文档站附带的 `full.proto` 是 GPLv3，
+  不复制它的文本），生成代码在 `src/yhchat/proto/_pb/`。
+- 非 1 的 `Status.code` 抛 `APIError`，HTTP 4xx/5xx 抛 `TransportError`。
 
 ## gRPC
 

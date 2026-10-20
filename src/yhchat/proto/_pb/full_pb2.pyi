@@ -1,0 +1,295 @@
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+
+DESCRIPTOR: _descriptor.FileDescriptor
+
+class ChatType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    unknown1: _ClassVar[ChatType]
+    user: _ClassVar[ChatType]
+    group: _ClassVar[ChatType]
+    bot: _ClassVar[ChatType]
+
+class ContentType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    unknown2: _ClassVar[ContentType]
+    text: _ClassVar[ContentType]
+    image: _ClassVar[ContentType]
+    markdown: _ClassVar[ContentType]
+    file: _ClassVar[ContentType]
+    form: _ClassVar[ContentType]
+    sticker: _ClassVar[ContentType]
+    html: _ClassVar[ContentType]
+    tip: _ClassVar[ContentType]
+    audio: _ClassVar[ContentType]
+    call: _ClassVar[ContentType]
+    a2ui: _ClassVar[ContentType]
+unknown1: ChatType
+user: ChatType
+group: ChatType
+bot: ChatType
+unknown2: ContentType
+text: ContentType
+image: ContentType
+markdown: ContentType
+file: ContentType
+form: ContentType
+sticker: ContentType
+html: ContentType
+tip: ContentType
+audio: ContentType
+call: ContentType
+a2ui: ContentType
+
+class Status(_message.Message):
+    __slots__ = ("request_id", "code", "msg")
+    REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
+    CODE_FIELD_NUMBER: _ClassVar[int]
+    MSG_FIELD_NUMBER: _ClassVar[int]
+    request_id: int
+    code: int
+    msg: str
+    def __init__(self, request_id: _Optional[int] = ..., code: _Optional[int] = ..., msg: _Optional[str] = ...) -> None: ...
+
+class StatusResponse(_message.Message):
+    __slots__ = ("status",)
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ...) -> None: ...
+
+class Tag(_message.Message):
+    __slots__ = ("id", "group_id", "text", "color")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    COLOR_FIELD_NUMBER: _ClassVar[int]
+    id: int
+    group_id: str
+    text: str
+    color: str
+    def __init__(self, id: _Optional[int] = ..., group_id: _Optional[str] = ..., text: _Optional[str] = ..., color: _Optional[str] = ...) -> None: ...
+
+class Sender(_message.Message):
+    __slots__ = ("chat_id", "chat_type", "name", "avatar_url", "is_vip", "tag_old", "tag")
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+    IS_VIP_FIELD_NUMBER: _ClassVar[int]
+    TAG_OLD_FIELD_NUMBER: _ClassVar[int]
+    TAG_FIELD_NUMBER: _ClassVar[int]
+    chat_id: str
+    chat_type: ChatType
+    name: str
+    avatar_url: str
+    is_vip: bool
+    tag_old: _containers.RepeatedScalarFieldContainer[str]
+    tag: _containers.RepeatedCompositeFieldContainer[Tag]
+    def __init__(self, chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., name: _Optional[str] = ..., avatar_url: _Optional[str] = ..., is_vip: _Optional[bool] = ..., tag_old: _Optional[_Iterable[str]] = ..., tag: _Optional[_Iterable[_Union[Tag, _Mapping]]] = ...) -> None: ...
+
+class Cmd(_message.Message):
+    __slots__ = ("cmd_id", "name", "type")
+    CMD_ID_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    cmd_id: int
+    name: str
+    type: int
+    def __init__(self, cmd_id: _Optional[int] = ..., name: _Optional[str] = ..., type: _Optional[int] = ...) -> None: ...
+
+class MsgContent(_message.Message):
+    __slots__ = ("text", "buttons", "image_url", "file_name", "file_url", "mentioned_id", "form", "quote_msg_text", "image", "post_id", "post_title", "post_content", "post_content_type", "expression_id", "quote_image_url", "quote_image_name", "file_size", "video_url", "video_time", "audio_url", "audio_time", "quote_video_url", "quote_video_time", "sticker_item_id", "sticker_pack_id", "room_name", "call_status_text", "width", "height", "tip")
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    BUTTONS_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_URL_FIELD_NUMBER: _ClassVar[int]
+    FILE_NAME_FIELD_NUMBER: _ClassVar[int]
+    FILE_URL_FIELD_NUMBER: _ClassVar[int]
+    MENTIONED_ID_FIELD_NUMBER: _ClassVar[int]
+    FORM_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_MSG_TEXT_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_FIELD_NUMBER: _ClassVar[int]
+    POST_ID_FIELD_NUMBER: _ClassVar[int]
+    POST_TITLE_FIELD_NUMBER: _ClassVar[int]
+    POST_CONTENT_FIELD_NUMBER: _ClassVar[int]
+    POST_CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    EXPRESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_IMAGE_URL_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_IMAGE_NAME_FIELD_NUMBER: _ClassVar[int]
+    FILE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    VIDEO_URL_FIELD_NUMBER: _ClassVar[int]
+    VIDEO_TIME_FIELD_NUMBER: _ClassVar[int]
+    AUDIO_URL_FIELD_NUMBER: _ClassVar[int]
+    AUDIO_TIME_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_VIDEO_URL_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_VIDEO_TIME_FIELD_NUMBER: _ClassVar[int]
+    STICKER_ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    STICKER_PACK_ID_FIELD_NUMBER: _ClassVar[int]
+    ROOM_NAME_FIELD_NUMBER: _ClassVar[int]
+    CALL_STATUS_TEXT_FIELD_NUMBER: _ClassVar[int]
+    WIDTH_FIELD_NUMBER: _ClassVar[int]
+    HEIGHT_FIELD_NUMBER: _ClassVar[int]
+    TIP_FIELD_NUMBER: _ClassVar[int]
+    text: str
+    buttons: str
+    image_url: str
+    file_name: str
+    file_url: str
+    mentioned_id: _containers.RepeatedScalarFieldContainer[str]
+    form: str
+    quote_msg_text: str
+    image: str
+    post_id: str
+    post_title: str
+    post_content: str
+    post_content_type: str
+    expression_id: str
+    quote_image_url: str
+    quote_image_name: str
+    file_size: int
+    video_url: str
+    video_time: int
+    audio_url: str
+    audio_time: int
+    quote_video_url: str
+    quote_video_time: int
+    sticker_item_id: int
+    sticker_pack_id: int
+    room_name: str
+    call_status_text: str
+    width: int
+    height: int
+    tip: str
+    def __init__(self, text: _Optional[str] = ..., buttons: _Optional[str] = ..., image_url: _Optional[str] = ..., file_name: _Optional[str] = ..., file_url: _Optional[str] = ..., mentioned_id: _Optional[_Iterable[str]] = ..., form: _Optional[str] = ..., quote_msg_text: _Optional[str] = ..., image: _Optional[str] = ..., post_id: _Optional[str] = ..., post_title: _Optional[str] = ..., post_content: _Optional[str] = ..., post_content_type: _Optional[str] = ..., expression_id: _Optional[str] = ..., quote_image_url: _Optional[str] = ..., quote_image_name: _Optional[str] = ..., file_size: _Optional[int] = ..., video_url: _Optional[str] = ..., video_time: _Optional[int] = ..., audio_url: _Optional[str] = ..., audio_time: _Optional[int] = ..., quote_video_url: _Optional[str] = ..., quote_video_time: _Optional[int] = ..., sticker_item_id: _Optional[int] = ..., sticker_pack_id: _Optional[int] = ..., room_name: _Optional[str] = ..., call_status_text: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., tip: _Optional[str] = ...) -> None: ...
+
+class SendMsgRequest(_message.Message):
+    __slots__ = ("msg_id", "chat_id", "chat_type", "content", "content_type", "command_id", "quote_msg_id")
+    MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    COMMAND_ID_FIELD_NUMBER: _ClassVar[int]
+    QUOTE_MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    msg_id: str
+    chat_id: str
+    chat_type: ChatType
+    content: MsgContent
+    content_type: ContentType
+    command_id: int
+    quote_msg_id: str
+    def __init__(self, msg_id: _Optional[str] = ..., chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., content: _Optional[_Union[MsgContent, _Mapping]] = ..., content_type: _Optional[_Union[ContentType, str]] = ..., command_id: _Optional[int] = ..., quote_msg_id: _Optional[str] = ...) -> None: ...
+
+class ListMsgRequest(_message.Message):
+    __slots__ = ("msg_count", "msg_id", "chat_type", "chat_id")
+    MSG_COUNT_FIELD_NUMBER: _ClassVar[int]
+    MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    msg_count: int
+    msg_id: str
+    chat_type: ChatType
+    chat_id: str
+    def __init__(self, msg_count: _Optional[int] = ..., msg_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., chat_id: _Optional[str] = ...) -> None: ...
+
+class ListMsgBySeqRequest(_message.Message):
+    __slots__ = ("msg_start", "chat_type", "chat_id")
+    MSG_START_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    msg_start: int
+    chat_type: ChatType
+    chat_id: str
+    def __init__(self, msg_start: _Optional[int] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., chat_id: _Optional[str] = ...) -> None: ...
+
+class ListMsgByMidSeqRequest(_message.Message):
+    __slots__ = ("msg_seq", "chat_type", "chat_id", "unknown", "msg_count", "msg_id")
+    MSG_SEQ_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    UNKNOWN_FIELD_NUMBER: _ClassVar[int]
+    MSG_COUNT_FIELD_NUMBER: _ClassVar[int]
+    MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    msg_seq: int
+    chat_type: ChatType
+    chat_id: str
+    unknown: int
+    msg_count: int
+    msg_id: str
+    def __init__(self, msg_seq: _Optional[int] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., chat_id: _Optional[str] = ..., unknown: _Optional[int] = ..., msg_count: _Optional[int] = ..., msg_id: _Optional[str] = ...) -> None: ...
+
+class PicListMsgByMidSeqRequest(_message.Message):
+    __slots__ = ("image_id", "chat_type", "chat_id", "earlier_quantities", "latest_quantities")
+    IMAGE_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    EARLIER_QUANTITIES_FIELD_NUMBER: _ClassVar[int]
+    LATEST_QUANTITIES_FIELD_NUMBER: _ClassVar[int]
+    image_id: int
+    chat_type: ChatType
+    chat_id: str
+    earlier_quantities: int
+    latest_quantities: int
+    def __init__(self, image_id: _Optional[int] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., chat_id: _Optional[str] = ..., earlier_quantities: _Optional[int] = ..., latest_quantities: _Optional[int] = ...) -> None: ...
+
+class ButtonReportRequest(_message.Message):
+    __slots__ = ("msg_id", "chat_type", "chat_id", "user_id", "button_value")
+    MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_ID_FIELD_NUMBER: _ClassVar[int]
+    BUTTON_VALUE_FIELD_NUMBER: _ClassVar[int]
+    msg_id: str
+    chat_type: ChatType
+    chat_id: str
+    user_id: str
+    button_value: str
+    def __init__(self, msg_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ..., chat_id: _Optional[str] = ..., user_id: _Optional[str] = ..., button_value: _Optional[str] = ...) -> None: ...
+
+class RecallMsg(_message.Message):
+    __slots__ = ("msg_id", "chat_id", "chat_type")
+    MSG_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_ID_FIELD_NUMBER: _ClassVar[int]
+    CHAT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    msg_id: _containers.RepeatedScalarFieldContainer[str]
+    chat_id: str
+    chat_type: ChatType
+    def __init__(self, msg_id: _Optional[_Iterable[str]] = ..., chat_id: _Optional[str] = ..., chat_type: _Optional[_Union[ChatType, str]] = ...) -> None: ...
+
+class ListMsgResponse(_message.Message):
+    __slots__ = ("status", "data", "total")
+    class MsgData(_message.Message):
+        __slots__ = ("msg_id", "sender", "direction", "content_type", "content", "send_timestamp_ms", "cmd", "recall_timestamp", "quote_msg_id", "msg_seq", "edit_timestamp")
+        MSG_ID_FIELD_NUMBER: _ClassVar[int]
+        SENDER_FIELD_NUMBER: _ClassVar[int]
+        DIRECTION_FIELD_NUMBER: _ClassVar[int]
+        CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+        CONTENT_FIELD_NUMBER: _ClassVar[int]
+        SEND_TIMESTAMP_MS_FIELD_NUMBER: _ClassVar[int]
+        CMD_FIELD_NUMBER: _ClassVar[int]
+        RECALL_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        QUOTE_MSG_ID_FIELD_NUMBER: _ClassVar[int]
+        MSG_SEQ_FIELD_NUMBER: _ClassVar[int]
+        EDIT_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        msg_id: str
+        sender: Sender
+        direction: str
+        content_type: ContentType
+        content: MsgContent
+        send_timestamp_ms: int
+        cmd: Cmd
+        recall_timestamp: int
+        quote_msg_id: str
+        msg_seq: int
+        edit_timestamp: int
+        def __init__(self, msg_id: _Optional[str] = ..., sender: _Optional[_Union[Sender, _Mapping]] = ..., direction: _Optional[str] = ..., content_type: _Optional[_Union[ContentType, str]] = ..., content: _Optional[_Union[MsgContent, _Mapping]] = ..., send_timestamp_ms: _Optional[int] = ..., cmd: _Optional[_Union[Cmd, _Mapping]] = ..., recall_timestamp: _Optional[int] = ..., quote_msg_id: _Optional[str] = ..., msg_seq: _Optional[int] = ..., edit_timestamp: _Optional[int] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: _containers.RepeatedCompositeFieldContainer[ListMsgResponse.MsgData]
+    total: int
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Iterable[_Union[ListMsgResponse.MsgData, _Mapping]]] = ..., total: _Optional[int] = ...) -> None: ...

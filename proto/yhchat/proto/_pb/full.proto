@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+// 云湖 v1 接口的 protobuf 消息子集。
+//
+// 字段名与字段号是 wire 协议事实，取自 yhchatAPI 文档站附带的 full.proto；
+// 该文档仓库是 GPLv3，这里只按字段号重写需要的最小子集，不复制其文本与注释。
+// `package yh` 与线上一致，改包名会影响兼容性。
+package yh;
+
+// 会话类型
+enum ChatType {
+  unknown1 = 0;
+  user = 1;
+  group = 2;
+  bot = 3;
+}
+
+// 内容类型
+enum ContentType {
+  unknown2 = 0;
+  text = 1;
+  image = 2;
+  markdown = 3;
+  file = 4;
+  form = 5;
+  sticker = 7;
+  html = 8;
+  tip = 9;
+  audio = 11;
+  call = 13;
+  a2ui = 14;
+}
+
+message Status {
+  int64 request_id = 1;
+  int32 code = 2;
+  string msg = 3;
+}
+
+message StatusResponse {
+  Status status = 1;
+}
+
+message Tag {
+  uint64 id = 1;
+  string group_id = 2;
+  string text = 3;
+  string color = 4;
+}
+
+message Sender {
+  string chat_id = 1;
+  ChatType chat_type = 2;
+  string name = 3;
+  string avatar_url = 4;
+  bool is_vip = 5;
+  repeated string tag_old = 6;
+  repeated Tag tag = 7;
+}
+
+message Cmd {
+  uint64 cmd_id = 1;
+  string name = 2;
+  int32 type = 4;
+}
+
+message MsgContent {
+  string text = 1;
+  string buttons = 2;
+  string image_url = 3;
+  string file_name = 4;
+  string file_url = 5;
+  repeated string mentioned_id = 6;
+  string form = 7;
+  string quote_msg_text = 8;
+  string image = 9;
+  string post_id = 10;
+  string post_title = 11;
+  string post_content = 12;
+  string post_content_type = 13;
+  string expression_id = 15;
+  string quote_image_url = 16;
+  string quote_image_name = 17;
+  int64 file_size = 18;
+  string video_url = 19;
+  int32 video_time = 20;
+  string audio_url = 21;
+  int32 audio_time = 22;
+  string quote_video_url = 23;
+  int32 quote_video_time = 24;
+  int64 sticker_item_id = 25;
+  int64 sticker_pack_id = 26;
+  string room_name = 29;
+  string call_status_text = 32;
+  int32 width = 33;
+  int32 height = 34;
+  string tip = 37;
+}
+
+// 发送消息；编辑消息复用同一结构（文档明确说明）
+message SendMsgRequest {
+  string msg_id = 2;
+  string chat_id = 3;
+  ChatType chat_type = 4;
+  MsgContent content = 5;
+  ContentType content_type = 6;
+  int64 command_id = 7;
+  string quote_msg_id = 8;
+}
+
+message ListMsgRequest {
+  int32 msg_count = 2;
+  string msg_id = 3;
+  ChatType chat_type = 4;
+  string chat_id = 5;
+}
+
+message ListMsgBySeqRequest {
+  uint64 msg_start = 3;
+  ChatType chat_type = 4;
+  string chat_id = 5;
+}
+
+message ListMsgByMidSeqRequest {
+  uint64 msg_seq = 3;
+  ChatType chat_type = 4;
+  string chat_id = 5;
+  uint64 unknown = 6;
+  int32 msg_count = 7;
+  string msg_id = 8;
+}
+
+message PicListMsgByMidSeqRequest {
+  uint64 image_id = 3;
+  ChatType chat_type = 4;
+  string chat_id = 5;
+  uint64 earlier_quantities = 6;
+  uint64 latest_quantities = 7;
+}
+
+message ButtonReportRequest {
+  string msg_id = 2;
+  ChatType chat_type = 3;
+  string chat_id = 4;
+  string user_id = 5;
+  string button_value = 6;
+}
+
+message RecallMsg {
+  repeated string msg_id = 2;
+  string chat_id = 3;
+  ChatType chat_type = 4;
+}
+
+message ListMsgResponse {
+  Status status = 1;
+  repeated MsgData data = 2;
+  int32 total = 3;
+
+  message MsgData {
+    string msg_id = 1;
+    Sender sender = 2;
+    string direction = 3;
+    ContentType content_type = 4;
+    MsgContent content = 5;
+    uint64 send_timestamp_ms = 6;
+    Cmd cmd = 7;
+    uint64 recall_timestamp = 8;
+    string quote_msg_id = 9;
+    uint64 msg_seq = 10;
+    uint64 edit_timestamp = 12;
+  }
+}

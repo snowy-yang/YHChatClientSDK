@@ -800,13 +800,13 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx", extra = ["http2"] },
+    { name = "protobuf" },
     { name = "pydantic" },
 ]
 
 [package.optional-dependencies]
 grpc = [
     { name = "grpcio" },
-    { name = "protobuf" },
 ]
 server = [
     { name = "granian" },
@@ -831,7 +831,7 @@ requires-dist = [
     { name = "granian", marker = "extra == 'server'", specifier = ">=2.0" },
     { name = "grpcio", marker = "extra == 'grpc'", specifier = ">=1.70" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.28" },
-    { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=5.28" },
+    { name = "protobuf", specifier = ">=5.28" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "starlette", marker = "extra == 'server'", specifier = ">=0.41" },
     { name = "websockets", marker = "extra == 'server'", specifier = ">=13" },

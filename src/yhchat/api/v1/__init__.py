@@ -1,6 +1,7 @@
 """``v1`` 用户接口集合（token 放请求头）。由 ``tools/gen_v1_api.py`` 生成，勿手改。"""
 
 from ...transport import HttpTransport
+from ._proto import V1ProtoAPI
 from .beta import BetaAPI
 from .bot import BotAPI
 from .captcha import CaptchaAPI
@@ -85,6 +86,7 @@ class V1API:
     """``v1/*`` 用户接口：按文档分组挂属性，token 由传输层放进请求头。"""
 
     def __init__(self, http: HttpTransport) -> None:
+        self.proto = V1ProtoAPI(http)
         self.beta = BetaAPI(http)
         self.bot = BotAPI(http)
         self.captcha = CaptchaAPI(http)

@@ -3,7 +3,7 @@
 > 本文件由 `tools/gen_endpoints.py` 从 yhchatAPI 文档站生成，请勿手工编辑。
 > 覆盖状态来自 `docs/implemented.txt`（每行一个已实现路径）；未列出即视为尚未实现。
 
-共 242 个端点，已实现 213 个。
+共 242 个端点，已实现 221 个。
 
 ## 按文档分组
 
@@ -318,15 +318,15 @@
 
 | 状态 | 方法 | 路径 | 说明 | 鉴权 |
 | --- | --- | --- | --- | --- |
-| [ ] | `POST` | `/v1/msg/send-message` | 发送信息 | user token |
-| [ ] | `POST` | `/v1/msg/edit-message` | 编辑消息 | user token |
-| [ ] | `POST` | `/v1/msg/list-message-by-seq` | 按消息序列列出消息（不包含指定消息） | user token |
-| [ ] | `POST` | `/v1/msg/list-message` | 列出消息 | user token |
-| [ ] | `POST` | `/v1/msg/list-message-by-mid-seq` | 按消息ID列出消息（包含消息id指定的消息） | user token |
+| [x] | `POST` | `/v1/msg/send-message` | 发送信息 | user token |
+| [x] | `POST` | `/v1/msg/edit-message` | 编辑消息 | user token |
+| [x] | `POST` | `/v1/msg/list-message-by-seq` | 按消息序列列出消息（不包含指定消息） | user token |
+| [x] | `POST` | `/v1/msg/list-message` | 列出消息 | user token |
+| [x] | `POST` | `/v1/msg/list-message-by-mid-seq` | 按消息ID列出消息（包含消息id指定的消息） | user token |
 | [x] | `POST` | `/v1/msg/list-message-edit-record` | 获取信息历史编辑内容 | user token |
-| [ ] | `POST` | `/v1/msg/button-report` | 发送按钮点击事件 | user token |
-| [ ] | `POST` | `/v1/msg/recall-msg` | 撤回信息 | user token |
-| [ ] | `POST` | `/v1/msg/recall-msg-batch` | 批量撤回消息 | user token |
+| [x] | `POST` | `/v1/msg/button-report` | 发送按钮点击事件 | user token |
+| [x] | `POST` | `/v1/msg/recall-msg` | 撤回信息 | user token |
+| [x] | `POST` | `/v1/msg/recall-msg-batch` | 批量撤回消息 | user token |
 | [x] | `POST` | `/v1/msg/file-download-record` | 文件消息下载记录 | user token |
 | [x] | `POST` | `/v1/msg/delete` | 删除消息 | user token |
 | [x] | `POST` | `/v1/msg/a2ui-form-report` | 触发A2UI表单提交信息 | user token |
@@ -489,3 +489,4 @@
 | `/open-apis/v1/video/upload` | 见 `src/yhchat/api/bot.py`，字段来自旧版实现，待验证 |
 | `/v1/instruction/edit` | 见 `src/yhchat/api/bot.py`，字段来自旧版实现，待验证 |
 | `/v1/msg/msg-forward` | 见 `src/yhchat/api/bot.py`，字段来自旧版实现，待验证 |
+| `/v1/msg/pic-list-message-by-mid-seq` | 见 `src/yhchat/api/bot.py`，字段来自旧版实现，待验证 |

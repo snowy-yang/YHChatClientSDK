@@ -256,6 +256,7 @@ def render_init(groups: dict[str, list[Endpoint]]) -> str:
         '"""``v1`` 用户接口集合（token 放请求头）。由 ``tools/gen_v1_api.py`` 生成，勿手改。"""',
         "",
         "from ...transport import HttpTransport",
+        "from ._proto import V1ProtoAPI",
     ]
     lines.extend(f"from .{module} import {_class_name(name)}" for name, module in zip(names, modules, strict=True))
     lines.extend(
@@ -271,6 +272,7 @@ def render_init(groups: dict[str, list[Endpoint]]) -> str:
             '    """``v1/*`` 用户接口：按文档分组挂属性，token 由传输层放进请求头。"""',
             "",
             "    def __init__(self, http: HttpTransport) -> None:",
+            "        self.proto = V1ProtoAPI(http)",
         ]
     )
     lines.extend(
@@ -332,6 +334,18 @@ def render_pending(skipped: list[Skipped], implemented: set[str]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def proto_paths() -> set[str]:
+    """取手写 protobuf 端点路径：解析 ``api/v1/_proto.py`` 的 ``PROTO_ENDPOINTS``。
+
+    不 import 该模块，避免生成器依赖 protobuf 运行时。
+    """
+    source = ROOT / "src/yhchat/api/v1/_proto.py"
+    if not source.exists():
+        return set()
+    match = re.search(r"PROTO_ENDPOINTS[^=]*=\s*frozenset\(\s*\{(?P<body>.*?)\}", source.read_text(encoding="utf-8"), re.S)
+    return set(re.findall(r'"(/v1/[^"]+)"', match.group("body"))) if match else set()
+
+
 def update_implemented(paths: list[str]) -> int:
     """把已生成的路径合并进 ``docs/implemented.txt``，返回新增数量。"""
     target = ROOT / "docs/implemented.txt"
@@ -367,9 +381,10 @@ def main() -> int:
         (args.out / f"{_module_name(group)}.py").write_text(render_group(group, items), encoding="utf-8")
     (args.out / "__init__.py").write_text(render_init(groups), encoding="utf-8")
     (args.out / "_base.py").write_text(render_base(), encoding="utf-8")
+    implemented = {endpoint.path for endpoint in endpoints} | proto_paths()
     pending = ROOT / "docs/v1_pending.md"
-    pending.write_text(render_pending(skipped, {endpoint.path for endpoint in endpoints}), encoding="utf-8")
-    added = update_implemented([endpoint.path for endpoint in endpoints])
+    pending.write_text(render_pending(skipped, implemented), encoding="utf-8")
+    added = update_implemented(sorted(implemented))
 
     print(
         f"生成 {len(endpoints)} 个 JSON 端点，分 {len(groups)} 组；跳过 {len(skipped)} 个；implemented.txt 新增 {added} 条"

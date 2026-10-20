@@ -75,6 +75,17 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
   body/params 透传、`code != 1` 抛 `APIError`。
 - protobuf/XML/外部地址端点一律跳过并写进 `docs/v1_pending.md`，不要生成半成品。
 
+## protobuf 端点约定
+
+- 消息定义在 `proto/yhchat/proto/_pb/full.proto`：**只按字段名/字段号手写需要的最小子集**，
+  不复制文档站 `full.proto` 的文本/注释（文档仓库 GPLv3）；`package yh` 必须保持，否则 wire 不兼容。
+- 生成：`uv run python tools/gen_proto.py` → `src/yhchat/proto/_pb/`；该目录进了 ruff/pyright 的 exclude，
+  靠同时生成的 `.pyi` 提供类型。新增 proto 后必须重跑生成，别手改生成物。
+- 端点实现在 `src/yhchat/api/v1/_proto.py`（手写，挂在 `client.v1.proto.<组>`）；新增一条要同步
+  `PROTO_ENDPOINTS`，生成器据此算覆盖率并写 `implemented.txt`。
+- 错误处理：响应消息体的 `Status.code != 1` 抛 `APIError`（带 `endpoint`），HTTP 4xx/5xx 抛 `TransportError`。
+- 测试用 respx 断言「请求字节能被反序列化回原消息」+「响应字节能被解析成嵌套结构」，不要只断言路径。
+
 ## 服务与 CLI 约定
 
 - `server/app.py` 只做装配：`/health`、`/webhook`、`Mount("/satori", ...)`；把云湖回调翻译成 Satori 事件在

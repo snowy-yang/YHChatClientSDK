@@ -1,9 +1,10 @@
 """HTTP 传输层：统一注入 token、解析 ``{code, msg, data}`` 包装、映射异常。"""
 
 from collections.abc import AsyncIterable, Mapping
-from typing import Any, Literal, cast
+from typing import Any, Literal, TypeVar, cast
 
 import httpx
+from google.protobuf.message import Message
 
 from .errors import APIError, TransportError
 
@@ -11,6 +12,9 @@ DEFAULT_BASE_URL = "https://chat-go.jwzhd.com"
 """云湖接口域名；``open-apis`` 与 ``v1`` 都是它下面的路径。"""
 
 _SUCCESS_CODE = 1
+
+MessageT = TypeVar("MessageT", bound=Message)
+
 
 
 class HttpTransport:
@@ -91,6 +95,36 @@ class HttpTransport:
         except httpx.HTTPError as exc:  # 超时、连接失败、协议错误
             raise TransportError(f"{method} {path} 请求失败: {exc}") from exc
         return self._parse(method, path, response)
+
+    async def request_pb(
+        self,
+        method: str,
+        path: str,
+        message: Message,
+        response_type: type[MessageT],
+        *,
+        params: Mapping[str, Any] | None = None,
+    ) -> MessageT:
+        """发送 protobuf 请求体，并按 ``response_type`` 解析响应。
+
+        ``v1/*`` 有 29 个端点是 protobuf 收发，响应不是 ``{code, msg, data}`` 包装，
+        错误码在消息体内的 ``Status`` 里，交由调用方检查。
+        """
+        headers = self._auth_headers({"Content-Type": "application/x-protobuf"})
+        try:
+            response = await self._client.request(
+                method,
+                path,
+                params=self._auth_params(params),
+                content=message.SerializeToString(),
+                headers=headers,
+            )
+        except httpx.HTTPError as exc:
+            raise TransportError(f"{method} {path} 请求失败: {exc}") from exc
+        if response.status_code >= 400:
+            raise TransportError(f"{method} {path} 返回 HTTP {response.status_code}")
+        return response_type.FromString(response.content)
+
 
     async def request_stream(
         self,
