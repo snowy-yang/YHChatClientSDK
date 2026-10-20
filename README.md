@@ -13,7 +13,7 @@
 | 文档站 `v1/*`、`web/v1/*` 的其余端点（共 242 个） | 规划中 |
 | Satori v1 协议端（聊天子集：HTTP RPC + WebSocket） | 部分实现，见下 |
 | gRPC 层（Send/BatchSend/SendStream/Edit/Recall/ListMessages/Upload） | 已实现 |
-| HTTP/2 ASGI 服务与 CLI | 规划中 |
+| HTTP/2 ASGI 服务与 CLI（webhook 接收 + Satori 挂载） | 已实现 |
 
 端点覆盖清单见 [`docs/ENDPOINTS.md`](docs/ENDPOINTS.md)，由 `tools/gen_endpoints.py` 从文档站生成，是覆盖度的唯一起点。
 
@@ -172,6 +172,32 @@ async with YHChatClient("机器人 token") as client:
 wire 形状已用参考实现 `satori-python-client`（1.3.7）的 `Ready/Event/MessageObject/PageResult`
 解析器交叉验证；未做真实网络端到端联调（没有 token 与回调地址）。
 
+## HTTP 服务与 CLI
+
+`yhchat serve` 用 Granian 跑 ASGI，同时提供健康检查、云湖回调接收和 Satori 挂载（需要 `server` extra）：
+
+```bash
+uv sync --extra server
+uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 5140
+```
+
+| 路由 | 说明 |
+| --- | --- |
+| `GET /health` | 健康检查，返回 `{status, satori, subscribers}` |
+| `POST /webhook` | 云湖回调（`message.receive.normal` / `message.receive.instruction`）→ Satori 事件 → `EventBus` |
+| `/satori/v1/{action}` | Satori HTTP RPC |
+| `/satori/v1/events` | Satori WebSocket |
+
+常用参数：`--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
+`--grpc-port`（同时起 gRPC）、`--no-http2`（只留 HTTP/1.1）、`--no-trust-env`
+（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
+
+已验证（真实进程 + 真实 socket）：HTTP/1.1 与 **h2c（HTTP/2 prior knowledge）** 的 `/health` 都是 200；
+`POST /webhook` → WS 收到 `op:0` 的 `message-created`，`sn` 递增、content 为 `<at id="u2"/>hi`。
+
+事件只做了消息类：其它 `eventType` 一律 200 应答并忽略（云湖会重试非 2xx）。**未做**：回调签名校验
+（云湖文档没给），webhook 重放/去重（`eventId` 只放进 `referrer`）。
+
 ## 错误处理
 
 - `APIError`：云湖返回 `code != 1` 或 HTTP 4xx/5xx，带 `code` / `message` / `endpoint`。
@@ -203,7 +229,9 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 │   ├── models/           # pydantic 模型与消息段
 │   ├── api/bot.py        # /open-apis/v1 机器人接口
 │   ├── grpc/             # gRPC 门面：convert / client / server / _pb（生成）
-│   └── satori/           # Satori v1 聊天子集：elements / models / bus / backend / server
+│   ├── satori/           # Satori v1 聊天子集：elements / models / bus / backend / server
+│   └── server/           # ASGI 组合：health / webhook / Satori 挂载
+├── src/yhchat/cli.py     # yhchat serve
 ├── proto/yhchat/grpc/_pb/yhchat.proto
 ├── tools/gen_endpoints.py
 ├── tools/gen_proto.py

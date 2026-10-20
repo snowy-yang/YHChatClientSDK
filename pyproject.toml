@@ -41,6 +41,9 @@ dev = [
 requires = ["uv_build>=0.13,<0.14"]
 build-backend = "uv_build"
 
+[project.scripts]
+yhchat = "yhchat.cli:main"
+
 [tool.uv.build-backend]
 module-name = "yhchat"
 

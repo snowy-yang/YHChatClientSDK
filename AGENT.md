@@ -63,6 +63,16 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - 测试：HTTP 用 `httpx.ASGITransport`，WS 用 `starlette.testclient.TestClient`
   （starlette 1.x 需要 `httpx2`，已在 dev 依赖里）。
 
+## 服务与 CLI 约定
+
+- `server/app.py` 只做装配：`/health`、`/webhook`、`Mount("/satori", ...)`；把云湖回调翻译成 Satori 事件在
+  `server/webhook.py`（`parse_webhook` → `to_satori_event`），不要在 app 里堆映射逻辑。
+- 非消息事件（`eventType` 不是 `message.receive.*`）必须 200 应答并忽略：云湖对非 2xx 会重试。
+- CLI 入口在 `cli.py`，granian 在 `run_granian` 里**延迟导入**，保证核心 SDK 不背 server 依赖。
+  新增参数时同步 `tests/test_cli.py` 的默认值断言。
+- h2c / HTTP/1.1 都走 granian 的 `HTTPModes.auto`；WS 走 HTTP/1.1。改动服务层后用真实进程冒烟：
+  `uv run yhchat serve ...` 然后 curl `/health`。
+
 ## 新端点接入流程
 
 1. 在 `docs/ENDPOINTS.md` 里找到目标端点（清单由 `uv run python tools/gen_endpoints.py` 生成）；
