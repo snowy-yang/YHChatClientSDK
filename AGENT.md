@@ -51,6 +51,18 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - 服务端用生成模块里的 `add_YHChatServicer_to_server` 注册（唯一的 `pyright: ignore` 点），业务方法全部委托给核心 SDK。
 - RPC 方法名保持 proto 的 CamelCase；错误统一经 `_grpc_errors` 映射成 gRPC 状态码。
 
+## Satori 约定
+
+- `SatoriChatServer`（`satori/server.py`）只认 `SatoriBackend` 协议；云湖字段假设全部写在
+  `satori/backend.py` 的 `YHChatBackend` 里。改云湖映射不要动协议层，反之亦然。
+- 消息内容是**标记文本**（`<at id="..."/>`、`<quote id="..."/>`、`<img src="..."/>`、`<br/>`），
+  解析/渲染在 `satori/elements.py`；未知标签按原文当文本保留。
+- Satori 响应是裸 JSON，没有 `{code,msg,data}` 包封；不支持的动作返回 **404**，不要用 501。
+- WS 帧：`op:3`→`op:4` 握手、`op:1`→`op:2` 心跳、`op:0` 推事件；token 错误关闭码 3000。
+- 事件统一走 `EventBus`（`satori/bus.py`），webhook 接入后由它投递；`sn` 在 publish 时分配。
+- 测试：HTTP 用 `httpx.ASGITransport`，WS 用 `starlette.testclient.TestClient`
+  （starlette 1.x 需要 `httpx2`，已在 dev 依赖里）。
+
 ## 新端点接入流程
 
 1. 在 `docs/ENDPOINTS.md` 里找到目标端点（清单由 `uv run python tools/gen_endpoints.py` 生成）；

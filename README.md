@@ -11,7 +11,7 @@
 | `/open-apis/v1` 机器人接口（发送/批量/流式/编辑/撤回/消息列表） | 已实现 |
 | 图片 / 视频 / 文件上传（文档未收录，云端实际提供） | 已实现 |
 | 文档站 `v1/*`、`web/v1/*` 的其余端点（共 242 个） | 规划中 |
-| Satori v1 协议端（聊天子集） | 规划中 |
+| Satori v1 协议端（聊天子集：HTTP RPC + WebSocket） | 部分实现，见下 |
 | gRPC 层（Send/BatchSend/SendStream/Edit/Recall/ListMessages/Upload） | 已实现 |
 | HTTP/2 ASGI 服务与 CLI | 规划中 |
 
@@ -126,6 +126,52 @@ async with grpc.aio.insecure_channel(f"127.0.0.1:{port}") as channel:
 - 错误映射：`APIError` → `FAILED_PRECONDITION`；`TransportError` / 参数问题 → `INVALID_ARGUMENT`。
 - 流式：`SendStream` 是客户端流，首块带 `recv_type` / `recv_id` / `content_type`，后续只带 `chunk`。
 
+## Satori v1 聊天子集
+
+自研协议端，不依赖 `satori-python` 服务端实现。`SatoriChatServer` 只依赖
+`SatoriBackend` 协议，云湖字段假设集中在 `YHChatBackend`，两者解耦。
+
+```python
+from yhchat import YHChatClient
+from yhchat.satori import YHChatBackend
+from yhchat.satori.server import SatoriChatServer
+```
+
+```python
+async with YHChatClient("机器人 token") as client:
+    backend = YHChatBackend(client, self_id="机器人 ID")
+    server = SatoriChatServer(backend, token="satori token")   # token 为 None 时不鉴权
+    app = server.build_app()   # 交给 granian / uvicorn 跑
+
+    # 有新事件时投递；WS 客户端会收到 op:0 帧
+    # await server.bus.publish(event)
+```
+
+协议要点：
+
+- `POST /v1/{action}`：参数 snake_case，响应是**裸 JSON**（无 `{code,msg,data}` 包封）；
+  鉴权用 `Authorization: Bearer`，缺失/错误返回 401。
+- `GET /v1/events`：`op:3 IDENTIFY`（body 带 `token`/`sn`）→ `op:4 READY`；
+  `op:1` → `op:2` 心跳；`op:0` 推事件（body 是 Satori Event，`sn` 递增）。
+  token 错误用关闭码 **3000**。
+- 未实现的动作按协议返回 **404**（不是 501），未知动作同样 404。
+
+已支撑：`message.create/get/list/update/delete`、`login.get`、`channel.get`、
+`guild.get`、`channel.list(guild_id=...)`。
+待接入：`guild.list`、`guild.member.*`、`user.get` 的资料、`friend.list` —— 它们依赖
+`v1/*` 端点，SDK 补齐后填 `YHChatBackend` 即可，协议层不用改。
+
+字段假设（云湖文档没有对应说明，属于推断，已在代码注释标注）：
+
+- `guild` = 群，`channel` = 会话；群聊 `channel.type = 0`、私聊 `1`；
+- 发送需要 `recvType` 而 Satori 只给 `channel_id`：`ChannelRegistry` 记住入站事件的类型，
+  未知时退回默认 `group`（可构造时改）；
+- 图片/视频/文件的 `src` 填云湖的 key，不是真实 URL；
+- `message.list` 用 `message-id` 当游标，`before`/`after` 当计数。
+
+wire 形状已用参考实现 `satori-python-client`（1.3.7）的 `Ready/Event/MessageObject/PageResult`
+解析器交叉验证；未做真实网络端到端联调（没有 token 与回调地址）。
+
 ## 错误处理
 
 - `APIError`：云湖返回 `code != 1` 或 HTTP 4xx/5xx，带 `code` / `message` / `endpoint`。
@@ -156,7 +202,8 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 │   ├── records.py        # msgId → 会话信息 的 LRU 缓存
 │   ├── models/           # pydantic 模型与消息段
 │   ├── api/bot.py        # /open-apis/v1 机器人接口
-│   └── grpc/             # gRPC 门面：convert / client / server / _pb（生成）
+│   ├── grpc/             # gRPC 门面：convert / client / server / _pb（生成）
+│   └── satori/           # Satori v1 聊天子集：elements / models / bus / backend / server
 ├── proto/yhchat/grpc/_pb/yhchat.proto
 ├── tools/gen_endpoints.py
 ├── tools/gen_proto.py
