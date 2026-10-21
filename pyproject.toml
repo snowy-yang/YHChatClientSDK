@@ -20,14 +20,9 @@ server = [
     "starlette>=0.41",
     "websockets>=13",
 ]
-# gRPC 门面
-grpc = [
-    "grpcio>=1.70",
-]
-
 [dependency-groups]
 dev = [
-    "grpcio-tools>=1.70",
+    "grpcio-tools>=1.70",  # 只用它的 protoc 生成 v1 的 pb2，不引入 gRPC 运行时
     "httpx2>=2.15.1",
     "pyright>=1.1.400",
     "pytest>=8.3",
@@ -55,11 +50,11 @@ filterwarnings = ["error"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
-extend-exclude = [".venv", "*.md", "src/yhchat/grpc/_pb", "src/yhchat/proto/_pb"]
+extend-exclude = [".venv", "*.md", "src/yhchat/proto/_pb"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF", "PERF", "TCH", "RET", "PIE", "ASYNC", "LOG", "G", "PYI"]
-# ASYNC109 要求用 asyncio.timeout 代替 timeout 参数；gRPC 调用需要原样透传 deadline，这里不适用
+# ASYNC109 要求用 asyncio.timeout 代替 timeout 参数；这里 timeout 是给 httpx 透传的配置项
 ignore = ["E501", "RUF001", "RUF002", "RUF003", "ASYNC109"]
 
 [tool.ruff.lint.pyupgrade]
@@ -74,7 +69,7 @@ docstring-code-format = true
 
 [tool.pyright]
 include = ["src", "tests", "tools"]
-exclude = [".venv", "**/__pycache__", "src/yhchat/grpc/_pb", "src/yhchat/proto/_pb"]
+exclude = [".venv", "**/__pycache__", "src/yhchat/proto/_pb"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 enableTypeIgnoreComments = false

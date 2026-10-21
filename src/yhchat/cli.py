@@ -1,7 +1,7 @@
 """命令行入口：``yhchat serve``。
 
-HTTP 服务用 Granian 跑 ASGI（``http2`` 打开时同时接受 h2 与 h2c）；
-gRPC 可选，传 ``--grpc-port`` 时和 HTTP 服务跑在同一个事件循环里。
+HTTP 服务用 Granian 跑 ASGI（``http2`` 打开时同时接受 h2 与 h2c），
+另有 webhook 接收、Satori 挂载和登录会话保存。
 """
 
 import argparse
@@ -27,7 +27,6 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--base-url", default=None, help="云湖 API 基地址（默认官方地址）")
     serve.add_argument("--webhook-path", default="/webhook", help="云湖回调路径（默认 /webhook）")
     serve.add_argument("--satori-path", default="/satori", help="Satori 挂载路径（默认 /satori）")
-    serve.add_argument("--grpc-port", type=int, default=None, help="同时启动 gRPC 服务（默认不启动）")
     serve.add_argument("--session-path", default="/session", help="会话路由前缀（默认 /session）")
     serve.add_argument(
         "--session-file",
@@ -97,26 +96,17 @@ async def _serve(args: argparse.Namespace) -> int:
             session_path=args.session_path,
             session_token=args.session_token,
         )
-        grpc_server: Any = None
-        if args.grpc_port:
-            from .grpc.server import serve as serve_grpc
-
-            grpc_server, _ = await serve_grpc(client, host=args.host, port=args.grpc_port)
-        try:
-            await run_granian(
-                server.build_app(),
-                host=args.host,
-                port=args.port,
-                http2=not args.no_http2,
-                ssl_cert=args.ssl_cert,
-                ssl_key=args.ssl_key,
-                ssl_key_password=args.ssl_key_password,
-                ssl_ca=args.ssl_ca,
-                ssl_client_verify=args.ssl_client_verify,
-            )
-        finally:
-            if grpc_server is not None:
-                await grpc_server.stop(grace=0)
+        await run_granian(
+            server.build_app(),
+            host=args.host,
+            port=args.port,
+            http2=not args.no_http2,
+            ssl_cert=args.ssl_cert,
+            ssl_key=args.ssl_key,
+            ssl_key_password=args.ssl_key_password,
+            ssl_ca=args.ssl_ca,
+            ssl_client_verify=args.ssl_client_verify,
+        )
     return 0
 
 

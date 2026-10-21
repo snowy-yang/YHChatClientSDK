@@ -5,7 +5,7 @@
 ## 项目是什么
 
 云湖（YHChat）的**非官方** Python SDK，目标是覆盖 [yhchatAPI 文档站](https://github.com/snowy-yang/yhchatAPI) 里全部 242 个端点，
-并在此之上提供 Satori v1 协议端（聊天子集）、gRPC 层与 HTTP/2 服务。
+并在此之上提供 Satori v1 协议端（聊天子集）与 HTTP/2 服务。
 与云湖官方无关，接口行为以实际返回为准。
 
 ## 语言与分支
@@ -41,15 +41,6 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
   不要塞进 `if TYPE_CHECKING`。
 - **错误**：`APIError(code, message, endpoint=...)`；缺字段一律 `TransportError`，不要用 `KeyError`/`AssertionError`。
 - **消息记录**：发送/接收到的消息登记进 `MessageRegistry`（LRU，进程内），编辑/撤回据此补全会话信息。
-
-## gRPC 约定
-
-- proto 在 `proto/yhchat/grpc/_pb/yhchat.proto`；路径特意与生成目录对齐，生成的 import 才是 `yhchat.grpc._pb.yhchat_pb2`。
-- 改 proto 后跑 `uv run python tools/gen_proto.py`；`src/yhchat/grpc/_pb/` 是生成物，**不要手改**，且被 ruff/pyright 排除。
-- 生成的 `_grpc.py` 没有类型标注，所以客户端不用生成的 stub，而是 `channel.unary_unary(...)` +
-  `grpc.aio.UnaryUnaryMultiCallable[...]` 自己建强类型调用器（见 `grpc/client.py`）。
-- 服务端用生成模块里的 `add_YHChatServicer_to_server` 注册（唯一的 `pyright: ignore` 点），业务方法全部委托给核心 SDK。
-- RPC 方法名保持 proto 的 CamelCase；错误统一经 `_grpc_errors` 映射成 gRPC 状态码。
 
 ## Satori 约定
 

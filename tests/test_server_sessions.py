@@ -60,9 +60,7 @@ async def http(server: YHChatServer) -> AsyncIterator[httpx.AsyncClient]:
 
 
 async def test_store_round_trip_and_permissions(store: SessionStore) -> None:
-    session = StoredSession(
-        user_id="u1", token="tk", device_id="dev", platform="windows", created_at=1.0
-    )
+    session = StoredSession(user_id="u1", token="tk", device_id="dev", platform="windows", created_at=1.0)
 
     await store.save(session)
 
@@ -83,9 +81,7 @@ async def test_store_rejects_corrupt_file(store: SessionStore) -> None:
         await store.load()
 
 
-async def test_login_persists_session_without_leaking_token(
-    store: SessionStore, http: httpx.AsyncClient
-) -> None:
+async def test_login_persists_session_without_leaking_token(store: SessionStore, http: httpx.AsyncClient) -> None:
     with respx.mock(base_url=BASE_URL) as mock:
         mock.post("/v1/user/email-login").mock(return_value=ok_token("user-token"))
         mock.get("/v1/user/info").mock(return_value=user_info())
@@ -138,9 +134,7 @@ async def test_login_wrong_password_returns_401_and_keeps_store_empty(
     store: SessionStore, http: httpx.AsyncClient
 ) -> None:
     with respx.mock(base_url=BASE_URL) as mock:
-        mock.post("/v1/user/email-login").mock(
-            return_value=httpx.Response(200, json={"code": -1, "msg": "密码错误"})
-        )
+        mock.post("/v1/user/email-login").mock(return_value=httpx.Response(200, json={"code": -1, "msg": "密码错误"}))
 
         response = await http.post("/session/login", json={"email": "a@b.c", "password": "bad"})
 
@@ -160,9 +154,7 @@ async def test_session_get_and_logout(store: SessionStore, http: httpx.AsyncClie
     with respx.mock(base_url=BASE_URL) as mock:
         mock.post("/v1/user/email-login").mock(return_value=ok_token("user-token"))
         mock.get("/v1/user/info").mock(return_value=user_info())
-        logout = mock.post("/v1/user/logout").mock(
-            return_value=httpx.Response(200, json={"code": 1, "msg": "success"})
-        )
+        logout = mock.post("/v1/user/logout").mock(return_value=httpx.Response(200, json={"code": 1, "msg": "success"}))
 
         assert (await http.get("/session")).status_code == 404
         await http.post("/session/login", json={"email": "a@b.c", "password": "pw"})
@@ -218,9 +210,7 @@ async def test_cleared_token_makes_v1_unavailable(store: SessionStore, sdk_clien
         _ = sdk_client.v1
 
 
-async def test_session_routes_require_token_when_configured(
-    sdk_client: YHChatClient, store: SessionStore
-) -> None:
+async def test_session_routes_require_token_when_configured(sdk_client: YHChatClient, store: SessionStore) -> None:
     server = YHChatServer(sdk_client, self_id="bot-1", session_store=store, session_token="secret")
     transport = httpx.ASGITransport(app=server.build_app())
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as http:

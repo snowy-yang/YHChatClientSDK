@@ -18,7 +18,6 @@ def test_serve_defaults() -> None:
     assert args.webhook_path == "/webhook"
     assert args.satori_path == "/satori"
     assert args.platform == "yhchat"
-    assert args.grpc_port is None
     assert args.session_path == "/session"
     assert args.session_file is None
     assert args.no_session is False
@@ -44,43 +43,6 @@ def test_granian_is_imported_lazily() -> None:
     result = subprocess.run([sys.executable, "-c", code], check=False, capture_output=True)
 
     assert result.returncode == 0, result.stderr
-
-
-def test_grpc_port_starts_and_stops_grpc_server(monkeypatch: pytest.MonkeyPatch) -> None:
-    started: dict[str, object] = {}
-
-    class FakeGrpcServer:
-        async def stop(self, grace: int = 0) -> None:
-            started["stopped"] = grace
-
-    async def fake_serve(client: object, *, host: str, port: int) -> tuple[FakeGrpcServer, int]:
-        started["grpc"] = (host, port)
-        return FakeGrpcServer(), port
-
-    async def fake_granian(app: object, *, host: str, port: int, http2: bool = True, **ssl: object) -> None:
-        started["granian"] = (host, port)
-
-    monkeypatch.setattr("yhchat.grpc.server.serve", fake_serve)
-    monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
-
-    # --no-trust-env：测试环境的 NO_PROXY=[::1] 会让 httpx 建 client 时就报 InvalidURL
-    code = main(
-        [
-            "serve",
-            "--token",
-            "tk",
-            "--self-id",
-            "bot-1",
-            "--grpc-port",
-            "50999",
-            "--port",
-            "5150",
-            "--no-trust-env",
-        ]
-    )
-
-    assert code == 0
-    assert started == {"grpc": ("127.0.0.1", 50999), "granian": ("127.0.0.1", 5150), "stopped": 0}
 
 
 def test_ssl_flags_parse() -> None:

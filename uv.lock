@@ -805,9 +805,6 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-grpc = [
-    { name = "grpcio" },
-]
 server = [
     { name = "granian" },
     { name = "starlette" },
@@ -829,14 +826,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "granian", marker = "extra == 'server'", specifier = ">=2.0" },
-    { name = "grpcio", marker = "extra == 'grpc'", specifier = ">=1.70" },
     { name = "httpx", extras = ["http2"], specifier = ">=0.28" },
     { name = "protobuf", specifier = ">=5.28" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "starlette", marker = "extra == 'server'", specifier = ">=0.41" },
     { name = "websockets", marker = "extra == 'server'", specifier = ">=13" },
 ]
-provides-extras = ["server", "grpc"]
+provides-extras = ["server"]
 
 [package.metadata.requires-dev]
 dev = [
