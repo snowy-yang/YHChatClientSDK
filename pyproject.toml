@@ -17,10 +17,9 @@ dependencies = [
 # HTTP/2 服务端与 Satori 协议端（自研实现）
 server = [
     "granian>=2.0",
+    "rloop>=0.1; sys_platform != 'win32'",  # Granian 的 Rust 事件循环实现
     "starlette>=0.41",
-    "uvicorn>=0.54",
     "websockets>=13",
-    "zttp>=0.0.34",  # uvicorn 的 HTTP/2（--http zttp --http2）
 ]
 [dependency-groups]
 dev = [

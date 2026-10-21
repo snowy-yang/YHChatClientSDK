@@ -1,16 +1,18 @@
 """命令行入口：``yhchat serve``。
 
-默认用 Granian 跑 ASGI（HTTP/2 + WebSocket），``--server uvicorn`` 可换成 uvicorn
-（h2 需 zttp）；另有 webhook 接收、Satori 挂载和登录会话保存。
+默认用 Granian 跑 ASGI（HTTP/2 + WebSocket），事件循环默认 ``auto``（装了 rloop 就用
+rloop，否则退回 asyncio）；另有 webhook 接收、Satori 挂载和登录会话保存。
 """
 
 import argparse
 import asyncio
+import contextlib
+import importlib
 import importlib.util
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,22 +44,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="会话接口的 Bearer token；公网部署务必设置（默认不鉴权，只应监听 127.0.0.1）",
     )
     serve.add_argument(
-        "--server",
-        choices=("uvicorn", "granian"),
-        default="granian",
-        help="ASGI 服务器（默认 granian；uvicorn 需 --http2 时自带 zttp）",
-    )
-    serve.add_argument(
         "--http2",
-        action="store_true",
-        default=None,
-        help="强制启用 HTTP/2（默认：granian 开、uvicorn 关）",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="服务端 HTTP/2（默认开启；--no-http2 只留 HTTP/1.1）",
     )
     serve.add_argument(
-        "--no-http2",
-        dest="http2",
-        action="store_false",
-        help="关闭 HTTP/2（granian 默认是开的）",
+        "--loop",
+        choices=("auto", "asyncio", "rloop"),
+        default="auto",
+        help="事件循环（默认 auto：装了 rloop 就用 rloop，否则用 asyncio）",
     )
     serve.add_argument(
         "--no-trust-env",
@@ -80,9 +76,52 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help()
         return 2
     try:
-        return asyncio.run(_serve(args))
+        return _run(args)
     except KeyboardInterrupt:
         return 130
+
+
+def _run(args: argparse.Namespace) -> int:
+    """按 ``--loop`` 选择事件循环后执行 ``_serve``。"""
+    loop_name = args.loop
+    if loop_name == "auto":
+        loop_name = "rloop" if importlib.util.find_spec("rloop") is not None else "asyncio"
+    if loop_name == "asyncio":
+        return asyncio.run(_serve(args))
+    if importlib.util.find_spec("rloop") is None:
+        print("--loop rloop 需要 rloop：uv sync --extra server", file=sys.stderr)
+        return 2
+    rloop = importlib.import_module("rloop")
+    new_loop = cast("Callable[[], asyncio.AbstractEventLoop]", rloop.new_event_loop)
+
+    def factory() -> asyncio.AbstractEventLoop:
+        loop = new_loop()
+        _close_rloop_selfpipe(loop)
+        return loop
+
+    with asyncio.Runner(loop_factory=factory) as runner:
+        return runner.run(_serve(args))
+
+
+def _close_rloop_selfpipe(loop: asyncio.AbstractEventLoop) -> None:
+    """rloop 0.5.0 停止 self-pipe 时只丢引用不关 socket，GC 时会报 ResourceWarning。"""
+    stop = getattr(loop, "_ssock_stop", None)
+    if not callable(stop):
+        return
+
+    def stop_and_close() -> None:
+        read = getattr(loop, "_ssock_r", None)
+        write = getattr(loop, "_ssock_w", None)
+        stop()
+        for sock in (read, write):
+            if sock is not None:
+                # 底层 fd 可能已被 rloop 关掉，这里只需让 Python 标记对象已关闭。
+                with contextlib.suppress(OSError):
+                    sock.close()
+
+    stop_name = "_ssock_stop"
+    with contextlib.suppress(AttributeError):
+        setattr(loop, stop_name, stop_and_close)
 
 
 async def _serve(args: argparse.Namespace) -> int:
@@ -99,11 +138,6 @@ async def _serve(args: argparse.Namespace) -> int:
 
         session_store = SessionStore(args.session_file or default_session_path())
 
-    http2 = args.http2 if args.http2 is not None else args.server == "granian"
-    if http2 and args.server == "uvicorn" and importlib.util.find_spec("zttp") is None:
-        print("--http2 需要 zttp：uv sync --extra server", file=sys.stderr)
-        return 2
-
     client_kwargs: dict[str, Any] = {"trust_env": not args.no_trust_env}
     if args.base_url:
         client_kwargs["base_url"] = args.base_url
@@ -119,65 +153,18 @@ async def _serve(args: argparse.Namespace) -> int:
             session_path=args.session_path,
             session_token=args.session_token,
         )
-        app = server.build_app()
-        if args.server == "granian":
-            await run_granian(
-                app,
-                host=args.host,
-                port=args.port,
-                http2=http2,
-                ssl_cert=args.ssl_cert,
-                ssl_key=args.ssl_key,
-                ssl_key_password=args.ssl_key_password,
-                ssl_ca=args.ssl_ca,
-                ssl_client_verify=args.ssl_client_verify,
-            )
-        else:
-            await run_uvicorn(
-                app,
-                host=args.host,
-                port=args.port,
-                http2=http2,
-                ssl_cert=args.ssl_cert,
-                ssl_key=args.ssl_key,
-                ssl_key_password=args.ssl_key_password,
-                ssl_ca=args.ssl_ca,
-                ssl_client_verify=args.ssl_client_verify,
-            )
+        await run_granian(
+            server.build_app(),
+            host=args.host,
+            port=args.port,
+            http2=args.http2,
+            ssl_cert=args.ssl_cert,
+            ssl_key=args.ssl_key,
+            ssl_key_password=args.ssl_key_password,
+            ssl_ca=args.ssl_ca,
+            ssl_client_verify=args.ssl_client_verify,
+        )
     return 0
-
-
-async def run_uvicorn(
-    app: Any,
-    *,
-    host: str,
-    port: int,
-    http2: bool = False,
-    ssl_cert: Path | None = None,
-    ssl_key: Path | None = None,
-    ssl_key_password: str | None = None,
-    ssl_ca: Path | None = None,
-    ssl_client_verify: bool = False,
-) -> None:
-    """用 uvicorn 跑 ASGI 应用；``http2=True`` 时走 zttp（h2c 与 TLS ALPN）。"""
-    import ssl
-
-    import uvicorn
-
-    config = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        log_level="info",
-        http="zttp" if http2 else "auto",
-        http2=http2,
-        ssl_certfile=str(ssl_cert) if ssl_cert else None,
-        ssl_keyfile=str(ssl_key) if ssl_key else None,
-        ssl_keyfile_password=ssl_key_password,
-        ssl_ca_certs=str(ssl_ca) if ssl_ca else None,
-        ssl_cert_reqs=ssl.CERT_REQUIRED if ssl_client_verify else ssl.CERT_NONE,
-    )
-    await uvicorn.Server(config).serve()
 
 
 async def run_granian(

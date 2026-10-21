@@ -86,7 +86,7 @@ class YHChatServer:
         return self._sessions
 
     def build_app(self) -> Starlette:
-        """构造 Starlette 应用，交给 granian / uvicorn 运行。"""
+        """构造 Starlette 应用，交给 Granian 运行。"""
         routes: list[Route | Mount] = [
             Route("/health", self._health, methods=["GET"]),
             Route(self._webhook_path, self._webhook, methods=["POST"]),
@@ -258,7 +258,7 @@ def _unauthorized() -> Response:
 
 
 def create_app() -> Starlette:
-    """从环境变量构造 ASGI 应用，供 ``uvicorn yhchat.server.app:create_app --factory`` 使用。
+    """从环境变量构造 ASGI 应用，供 Granian CLI 的 ``--factory`` 使用。
 
     环境变量：``YHCHAT_TOKEN`` / ``YHCHAT_SELF_ID``（必填）、``YHCHAT_USER_TOKEN``、
     ``YHCHAT_BASE_URL``、``YHCHAT_SATORI_TOKEN``、``YHCHAT_PLATFORM``、

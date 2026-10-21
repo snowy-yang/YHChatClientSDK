@@ -1,9 +1,10 @@
-"""命令行入口测试：参数解析、TLS 参数、延迟导入（不真正常驻服务器）。"""
+"""命令行入口测试：参数解析、TLS 参数、事件循环选择、延迟导入（不真正常驻服务器）。"""
 
 import asyncio
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -22,8 +23,8 @@ def test_serve_defaults() -> None:
     assert args.session_file is None
     assert args.no_session is False
     assert args.session_token is None
-    assert args.server == "granian"
-    assert args.http2 is None
+    assert args.http2 is True
+    assert args.loop == "auto"
     assert args.no_trust_env is False
 
 
@@ -109,68 +110,10 @@ def test_run_granian_passes_tls_options(monkeypatch: pytest.MonkeyPatch) -> None
     assert captured["port"] == 8443
 
 
-def test_http2_requires_zttp(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    import importlib.util
-
-    real_find_spec = importlib.util.find_spec
-
-    def fake_find_spec(name: str, package: str | None = None) -> object:
-        if name == "zttp":
-            return None
-        return real_find_spec(name, package)
-
-    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
-
-    code = main(
-        [
-            "serve",
-            "--token",
-            "tk",
-            "--self-id",
-            "bot-1",
-            "--server",
-            "uvicorn",
-            "--http2",
-            "--no-trust-env",
-            "--no-session",
-        ]
-    )
-
-    assert code == 2
-    assert "zttp" in capsys.readouterr().err
-
-
-def test_http2_passes_through_to_uvicorn_runner(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_serve_passes_http2_and_tls_to_granian(monkeypatch: pytest.MonkeyPatch) -> None:
     started: dict[str, object] = {}
 
-    async def fake_uvicorn(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
-        started["uvicorn"] = (host, port, http2)
-
-    monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)
-
-    code = main(
-        [
-            "serve",
-            "--token",
-            "tk",
-            "--self-id",
-            "bot-1",
-            "--server",
-            "uvicorn",
-            "--http2",
-            "--no-trust-env",
-            "--no-session",
-        ]
-    )
-
-    assert code == 0
-    assert started["uvicorn"] == ("127.0.0.1", 5140, True)
-
-
-def test_granian_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
-    started: dict[str, object] = {}
-
-    async def fake_granian(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
+    async def fake_granian(app: object, *, host: str, port: int, http2: bool = True, **ssl: object) -> None:
         started["granian"] = (host, port, http2)
 
     monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
@@ -184,23 +127,79 @@ def test_granian_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_granian_http2_can_be_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
     started: dict[str, object] = {}
 
-    async def fake_granian(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
+    async def fake_granian(app: object, *, host: str, port: int, http2: bool = True, **ssl: object) -> None:
         started["granian"] = (host, port, http2)
 
     monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
 
-    code = main(
-        [
-            "serve",
-            "--token",
-            "tk",
-            "--self-id",
-            "bot-1",
-            "--no-http2",
-            "--no-trust-env",
-            "--no-session",
-        ]
-    )
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-http2", "--no-trust-env", "--no-session"])
 
     assert code == 0
     assert started["granian"] == ("127.0.0.1", 5140, False)
+
+
+def test_loop_asyncio_uses_default_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, str] = {}
+
+    async def fake_serve(args: Any) -> int:
+        seen["loop"] = type(asyncio.get_running_loop()).__name__
+        return 0
+
+    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "asyncio", "--no-session"])
+
+    assert code == 0
+    assert "RLoop" not in seen["loop"]
+
+
+def test_loop_rloop_runs_on_rloop(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("rloop")
+    seen: dict[str, str] = {}
+
+    async def fake_serve(args: Any) -> int:
+        seen["loop"] = type(asyncio.get_running_loop()).__name__
+        return 0
+
+    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "rloop", "--no-session"])
+
+    assert code == 0
+    assert seen["loop"] == "RLoop"
+
+
+def test_loop_rloop_reports_missing_dependency(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import importlib.util
+
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name: str, package: str | None = None) -> object:
+        if name == "rloop":
+            return None
+        return real_find_spec(name, package)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "rloop", "--no-session"])
+
+    assert code == 2
+    assert "rloop" in capsys.readouterr().err
+
+
+def test_loop_auto_uses_rloop_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("rloop")
+    seen: dict[str, str] = {}
+
+    async def fake_serve(args: Any) -> int:
+        seen["loop"] = type(asyncio.get_running_loop()).__name__
+        return 0
+
+    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-session"])
+
+    assert code == 0
+    assert seen["loop"] == "RLoop"
