@@ -103,6 +103,28 @@ async with YHChatClient("机器人 token", user_token="用户 token") as client:
   并把已实现路径合并进 `docs/implemented.txt`）。生成物勿手改，改规则改生成器。
 - `docs/v1_pending.md` 记录待实现端点（当前为空）；覆盖率明细见 `docs/ENDPOINTS.md`。
 
+### 客户端登录
+
+登录端点本身**不需要 token**，所以挂在 `client.auth`；拿到 `LoginSession` 后用
+`client.use_user_token(session.token)` 切到该账号：
+
+```python
+async with YHChatClient("机器人 token") as client:
+    session = await client.auth.login_with_email("me@example.com", "密码")
+    await client.use_user_token(session.token)
+
+    me = await client.v1.web_user.info()      # 现在用的是用户 token
+    await client.auth.logout(session)         # 请求体是 device-id，token 走请求头
+```
+
+- 短信登录：`client.auth.login_with_verification("手机号", "验证码")`，验证码图片用 `client.auth.captcha()`。
+- `deviceId`：文档明确"登录设备唯一标识符，可自定义"（WS 文档写"可随便写"），SDK 默认随机 16 位十六进制；
+  退出登录/下线设备要用同一个 `deviceId`。
+- `platform`：HTTP 登录"可自定义,不校验"，但 **WS 登录**要求 `windows`/`macos`/`android` 等固定值且
+  大小写敏感，所以默认 `windows`。
+- 登录响应只有 `data.token`，文档没给过期时间；SDK 不持久化 token，需要自己存。
+- 邮箱密码按文档示例**明文提交**，SDK 不做哈希。
+
 ### protobuf 端点
 
 `v1` 里 29 个端点用 protobuf 收发（`msg`、`user`、`group`、`bot` 等），它们的错误码在消息体的 `Status` 里，

@@ -85,6 +85,10 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
   `PROTO_ENDPOINTS`，生成器扫描 `api/v1/_*.py` 里的 `*_ENDPOINTS` 据此算覆盖率并写 `implemented.txt`。
 - 非 JSON/protobuf 的端点在 `_extra.py`（`client.v1.extra`），同样登记进 `EXTRA_ENDPOINTS`；
   外部地址（如七牛上传 URL）不算云湖端点，不登记。
+- 登录端点（`/v1/user/verification-login`、`email-login`、`captcha`）**不需要 token**，走
+  `client.auth`（`HttpTransport(auth="none")`）；生成器产出的 `client.v1.user.*` 版本会带用户 token，
+  只适合已登录场景。`logout` 的 body 字段是 `device-id`（连字符），token 在请求头。
+- 登录后切账号用 `await client.use_user_token(token)`，它会关掉旧的 v1 连接池；不要手改 `_v1_http`。
 - 错误处理：响应消息体的 `Status.code != 1` 抛 `APIError`（带 `endpoint`），HTTP 4xx/5xx 抛 `TransportError`。
 - 测试用 respx 断言「请求字节能被反序列化回原消息」+「响应字节能被解析成嵌套结构」，不要只断言路径。
 

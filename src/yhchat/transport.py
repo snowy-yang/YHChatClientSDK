@@ -21,6 +21,7 @@ class HttpTransport:
 
     - 默认把 ``token`` 放在查询参数里（``/open-apis/v1`` 的 bot 约定）；
       ``v1/*`` 的用户接口改放请求头（``auth="header"``）；
+      登录这类免鉴权端点用 ``auth="none"``，完全不注入 token；
     - 所有响应按 ``{code, msg, data}`` 解析，``code != 1`` 抛 :class:`APIError`；
     - 网络层失败统一抛 :class:`TransportError`。
     """
@@ -30,7 +31,7 @@ class HttpTransport:
         *,
         token: str,
         base_url: str = DEFAULT_BASE_URL,
-        auth: Literal["query", "header"] = "query",
+        auth: Literal["query", "header", "none"] = "query",
         token_name: str = "token",
         timeout: float = 15.0,
         http2: bool = True,

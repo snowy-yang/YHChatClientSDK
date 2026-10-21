@@ -7,6 +7,7 @@ import httpx
 
 from .api.bot import BotAPI
 from .api.v1 import V1API
+from .api.v1._auth import AuthAPI
 from .errors import YHChatError
 from .records import MessageRegistry
 from .transport import DEFAULT_BASE_URL, HttpTransport
@@ -40,6 +41,8 @@ class YHChatClient:
         self._user_token = user_token
         self._v1_http: HttpTransport | None = None
         self._v1: V1API | None = None
+        self._auth_http: HttpTransport | None = None
+        self._auth_api: AuthAPI | None = None
         self._http = HttpTransport(
             token=token,
             base_url=base_url,
@@ -57,6 +60,35 @@ class YHChatClient:
     def token(self) -> str:
         """当前机器人 token。"""
         return self._http.token
+
+    @property
+    def auth(self) -> AuthAPI:
+        """用户账号登录（免鉴权端点）：``client.auth.login_with_email(...)``。
+
+        登录端点本身不需要 token，所以单独用 ``auth="none"`` 的连接池；
+        拿到 :class:`~yhchat.api.v1._auth.LoginSession` 后可用
+        :meth:`use_user_token` 切到该账号。
+        """
+        if self._auth_api is None:
+            self._auth_http = HttpTransport(
+                token="",
+                base_url=self._base_url,
+                auth="none",
+                timeout=self._timeout,
+                http2=self._http2,
+                trust_env=self._trust_env,
+                transport=self._raw_transport,
+            )
+            self._auth_api = AuthAPI(self._auth_http)
+        return self._auth_api
+
+    async def use_user_token(self, token: str) -> None:
+        """登录后把 :attr:`v1` 切到新 token（会关掉旧的 v1 连接池）。"""
+        if self._v1_http is not None:
+            await self._v1_http.aclose()
+        self._user_token = token
+        self._v1_http = None
+        self._v1 = None
 
     @property
     def v1(self) -> V1API:
@@ -103,6 +135,8 @@ class YHChatClient:
         await self._http.aclose()
         if self._v1_http is not None:
             await self._v1_http.aclose()
+        if self._auth_http is not None:
+            await self._auth_http.aclose()
 
     async def __aenter__(self) -> Self:
         return self
