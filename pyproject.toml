@@ -16,7 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 # HTTP/2 服务端与 Satori 协议端（自研实现）
 server = [
-    "granian>=2.0",
+    "granian[reload]>=2.0",
     "rloop>=0.1; sys_platform != 'win32'",  # Granian 的 Rust 事件循环实现
     "starlette>=0.41",
     "websockets>=13",

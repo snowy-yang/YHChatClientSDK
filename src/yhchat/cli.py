@@ -1,18 +1,20 @@
 """命令行入口：``yhchat serve``。
 
-默认用 Granian 跑 ASGI（HTTP/2 + WebSocket），事件循环默认 ``auto``（装了 rloop 就用
-rloop，否则退回 asyncio）；另有 webhook 接收、Satori 挂载和登录会话保存。
+不再用 Granian 的嵌入模式：把配置写成 ``YHCHAT_*`` 环境变量，直接拉起
+``python -m granian --factory yhchat.server.app:create_app`` 子进程，父进程只做信号转发
+和退出码透传。这样 ``--reload`` / ``--loop rloop`` / ``--pname`` 等 Granian CLI 功能都能用。
 """
 
 import argparse
-import asyncio
-import contextlib
-import importlib
 import importlib.util
+import os
+import signal
+import subprocess
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, cast
+from types import FrameType
+from typing import Any
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -53,8 +55,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--loop",
         choices=("auto", "asyncio", "rloop"),
         default="auto",
-        help="事件循环（默认 auto：装了 rloop 就用 rloop，否则用 asyncio）",
+        help="事件循环（默认 auto；直接传给 Granian CLI）",
     )
+    serve.add_argument("--reload", action="store_true", help="文件变更自动重启（Granian CLI 功能）")
     serve.add_argument(
         "--no-trust-env",
         action="store_true",
@@ -76,127 +79,105 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help()
         return 2
     try:
-        return _run(args)
+        return _serve(args)
     except KeyboardInterrupt:
         return 130
 
 
-def _run(args: argparse.Namespace) -> int:
-    """按 ``--loop`` 选择事件循环后执行 ``_serve``。"""
-    loop_name = args.loop
-    if loop_name == "auto":
-        loop_name = "rloop" if importlib.util.find_spec("rloop") is not None else "asyncio"
-    if loop_name == "asyncio":
-        return asyncio.run(_serve(args))
-    if importlib.util.find_spec("rloop") is None:
-        print("--loop rloop 需要 rloop：uv sync --extra server", file=sys.stderr)
-        return 2
-    rloop = importlib.import_module("rloop")
-    new_loop = cast("Callable[[], asyncio.AbstractEventLoop]", rloop.new_event_loop)
-
-    def factory() -> asyncio.AbstractEventLoop:
-        loop = new_loop()
-        _close_rloop_selfpipe(loop)
-        return loop
-
-    with asyncio.Runner(loop_factory=factory) as runner:
-        return runner.run(_serve(args))
-
-
-def _close_rloop_selfpipe(loop: asyncio.AbstractEventLoop) -> None:
-    """rloop 0.5.0 停止 self-pipe 时只丢引用不关 socket，GC 时会报 ResourceWarning。"""
-    stop = getattr(loop, "_ssock_stop", None)
-    if not callable(stop):
-        return
-
-    def stop_and_close() -> None:
-        read = getattr(loop, "_ssock_r", None)
-        write = getattr(loop, "_ssock_w", None)
-        stop()
-        for sock in (read, write):
-            if sock is not None:
-                # 底层 fd 可能已被 rloop 关掉，这里只需让 Python 标记对象已关闭。
-                with contextlib.suppress(OSError):
-                    sock.close()
-
-    stop_name = "_ssock_stop"
-    with contextlib.suppress(AttributeError):
-        setattr(loop, stop_name, stop_and_close)
-
-
-async def _serve(args: argparse.Namespace) -> int:
-    from .client import YHChatClient
-    from .server.app import YHChatServer
-
+def _serve(args: argparse.Namespace) -> int:
+    """校验参数后拉起 Granian 子进程，转发信号并等待退出。"""
     if bool(args.ssl_cert) != bool(args.ssl_key):
         print("--ssl-cert 与 --ssl-key 必须同时提供", file=sys.stderr)
         return 2
+    if args.reload and importlib.util.find_spec("watchfiles") is None:
+        print("--reload 需要 watchfiles：uv sync --extra server", file=sys.stderr)
+        return 2
+    if args.loop == "rloop" and importlib.util.find_spec("rloop") is None:
+        print("--loop rloop 需要 rloop：uv sync --extra server", file=sys.stderr)
+        return 2
 
-    session_store = None
-    if not args.no_session:
-        from .server.sessions import SessionStore, default_session_path
+    try:
+        process = subprocess.Popen(granian_command(args), env=server_env(args))
+    except OSError as exc:
+        print(f"启动 Granian 失败：{exc}", file=sys.stderr)
+        return 2
+    previous: dict[int, Any] = {}
 
-        session_store = SessionStore(args.session_file or default_session_path())
+    def forward(signum: int, frame: FrameType | None) -> None:
+        if process.poll() is None:
+            process.send_signal(signum)
 
-    client_kwargs: dict[str, Any] = {"trust_env": not args.no_trust_env}
-    if args.base_url:
-        client_kwargs["base_url"] = args.base_url
-    async with YHChatClient(args.token, **client_kwargs) as client:
-        server = YHChatServer(
-            client,
-            self_id=args.self_id,
-            satori_token=args.satori_token,
-            platform=args.platform,
-            webhook_path=args.webhook_path,
-            satori_path=args.satori_path,
-            session_store=session_store,
-            session_path=args.session_path,
-            session_token=args.session_token,
-        )
-        await run_granian(
-            server.build_app(),
-            host=args.host,
-            port=args.port,
-            http2=args.http2,
-            ssl_cert=args.ssl_cert,
-            ssl_key=args.ssl_key,
-            ssl_key_password=args.ssl_key_password,
-            ssl_ca=args.ssl_ca,
-            ssl_client_verify=args.ssl_client_verify,
-        )
-    return 0
+    for name in ("SIGINT", "SIGTERM", "SIGHUP"):
+        if hasattr(signal, name):
+            previous[getattr(signal, name)] = signal.signal(getattr(signal, name), forward)
+    try:
+        return process.wait()
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
 
 
-async def run_granian(
-    app: object,
-    *,
-    host: str,
-    port: int,
-    http2: bool = True,
-    ssl_cert: Path | None = None,
-    ssl_key: Path | None = None,
-    ssl_key_password: str | None = None,
-    ssl_ca: Path | None = None,
-    ssl_client_verify: bool = False,
-) -> None:
-    """用 Granian 跑 ASGI 应用（WebSocket 走 HTTP/1.1，HTTP/2 用于普通请求，可挂 TLS）。"""
-    from granian.constants import HTTPModes, Interfaces
-    from granian.server.embed import Server
+def granian_command(args: argparse.Namespace) -> list[str]:
+    """把 CLI 参数翻译成 Granian CLI 命令行。"""
+    command = [
+        sys.executable,
+        "-m",
+        "granian",
+        "--interface",
+        "asgi",
+        "--factory",
+        "yhchat.server.app:create_app",
+        "--host",
+        args.host,
+        "--port",
+        str(args.port),
+        "--http",
+        "auto" if args.http2 else "1",
+        "--loop",
+        args.loop,
+    ]
+    if args.reload:
+        command.append("--reload")
+    if args.ssl_cert:
+        command += ["--ssl-certificate", str(args.ssl_cert)]
+    if args.ssl_key:
+        command += ["--ssl-keyfile", str(args.ssl_key)]
+    if args.ssl_key_password:
+        command += ["--ssl-keyfile-password", args.ssl_key_password]
+    if args.ssl_ca:
+        command += ["--ssl-ca", str(args.ssl_ca)]
+    if args.ssl_client_verify:
+        command.append("--ssl-client-verify")
+    return command
 
-    server = Server(
-        app,
-        address=host,
-        port=port,
-        interface=Interfaces.ASGI,
-        http=HTTPModes.auto if http2 else HTTPModes.http1,
-        websockets=True,
-        ssl_cert=ssl_cert,
-        ssl_key=ssl_key,
-        ssl_key_password=ssl_key_password,
-        ssl_ca=ssl_ca,
-        ssl_client_verify=ssl_client_verify,
-    )
-    await server.serve()
+
+def server_env(args: argparse.Namespace) -> dict[str, str]:
+    """把 CLI 参数翻译成子进程的 ``YHCHAT_*`` 环境变量。"""
+    env = dict(os.environ)
+    env["YHCHAT_TOKEN"] = args.token
+    env["YHCHAT_SELF_ID"] = args.self_id
+    env["YHCHAT_PLATFORM"] = args.platform
+    env["YHCHAT_WEBHOOK_PATH"] = args.webhook_path
+    env["YHCHAT_SATORI_PATH"] = args.satori_path
+    env["YHCHAT_SESSION_PATH"] = args.session_path
+    env["YHCHAT_TRUST_ENV"] = "0" if args.no_trust_env else "1"
+    _set_or_clear(env, "YHCHAT_BASE_URL", args.base_url)
+    _set_or_clear(env, "YHCHAT_SATORI_TOKEN", args.satori_token)
+    _set_or_clear(env, "YHCHAT_SESSION_TOKEN", args.session_token)
+    if args.no_session:
+        env.pop("YHCHAT_SESSION_FILE", None)
+    else:
+        from .server.sessions import default_session_path
+
+        env["YHCHAT_SESSION_FILE"] = str(args.session_file or default_session_path())
+    return env
+
+
+def _set_or_clear(env: dict[str, str], key: str, value: str | None) -> None:
+    if value:
+        env[key] = value
+    else:
+        env.pop(key, None)
 
 
 if __name__ == "__main__":

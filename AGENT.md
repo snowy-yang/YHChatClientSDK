@@ -44,16 +44,18 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 
 ## 服务器与 CLI 约定
 
-- `yhchat serve` 固定用 Granian，HTTP/2 默认开启（`--no-http2` 关闭），不要删掉 h2c 兼容。
-- 事件循环 `--loop auto|asyncio|rloop`（默认 auto → 有 rloop 就用）。rloop 0.5.0 的
-  `_ssock_stop` 只丢引用不关 self-pipe socket，`_close_rloop_selfpipe()` 是必要兜底，
-  删掉会让测试在 `filterwarnings=error` 下报 ResourceWarning。
-- Granian 的 `dotenv`/`pname`/`reload` extras 只对 Granian CLI 生效，嵌入 `Server` 不消费，
-  不要为了"功能齐全"把它们塞进依赖。
+- `yhchat serve` 是 Granian CLI 的壳：`_serve()` 用 `sys.executable -m granian --interface asgi
+  --factory yhchat.server.app:create_app` 拉子进程，配置**只**通过 `YHCHAT_*` 环境变量传过去。
+  不要再退回 `granian.server.embed`（它是 experimental，且没有 reload/pname）。
+- `--http2` 必须映射成 Granian 的 `--http auto`（h2 + HTTP/1.1，WS 可用），`--no-http2` 映射
+  `--http 1`。不要映射成 `--http 2`：HTTP/2 only 会禁用 WebSocket。
+- 父进程转发 SIGINT/SIGTERM/SIGHUP 给子进程，并透传退出码；子进程退出后不能留孤儿 worker。
+- rloop 由 Granian CLI 的 `--loop` 负责，Python 侧不需要也没必要再碰 self-pipe。
 - `create_app()`（`server/app.py`）从 `YHCHAT_*` 环境变量构造应用，供
   `granian --interface asgi --factory yhchat.server.app:create_app` 使用；`close_client=True`
   保证 lifespan 退出时关连接池。
-- 新增 runner 时把 TLS 参数逐项译成对应库的 `ssl_*` 参数；不要在这里写业务逻辑。
+- 新增 CLI 参数时在 `granian_command()` / `server_env()` 里显式翻译；没有对应项就用 `_set_or_clear()`
+  清掉继承的 `YHCHAT_*`，不要留隐式穿透。
 
 ## Satori 约定
 
@@ -107,7 +109,7 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 
 - webhook 按 `header.eventId` 做 LRU 去重（`dedupe_size` 默认 1024）；改动回调处理时不要绕过它，否则
   云湖重投会产生重复事件。
-- TLS 参数（`--ssl-cert/--ssl-key/--ssl-key-password/--ssl-ca/--ssl-client-verify`）直接透传给 Granian；
+- TLS 参数映射到 Granian CLI 的 `--ssl-certificate/--ssl-keyfile/--ssl-keyfile-password/--ssl-ca/--ssl-client-verify`；
   `--ssl-cert` 与 `--ssl-key` 必须成对，缺一个返回退出码 2。
 
 - `server/app.py` 只做装配：`/health`、`/webhook`、`Mount("/satori", ...)`；把云湖回调翻译成 Satori 事件在

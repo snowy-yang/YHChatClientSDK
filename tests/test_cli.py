@@ -1,6 +1,5 @@
-"""命令行入口测试：参数解析、TLS 参数、事件循环选择、延迟导入（不真正常驻服务器）。"""
+"""命令行入口测试：参数翻译、环境变量、子进程启动（不真正常驻服务器）。"""
 
-import asyncio
 import subprocess
 import sys
 from pathlib import Path
@@ -8,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from yhchat.cli import build_parser, main, run_granian
+from yhchat.cli import build_parser, granian_command, main, server_env
 
 
 def test_serve_defaults() -> None:
@@ -25,6 +24,7 @@ def test_serve_defaults() -> None:
     assert args.session_token is None
     assert args.http2 is True
     assert args.loop == "auto"
+    assert args.reload is False
     assert args.no_trust_env is False
 
 
@@ -40,7 +40,7 @@ def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert "serve" in capsys.readouterr().out
 
 
-def test_granian_is_imported_lazily() -> None:
+def test_granian_is_not_imported_by_cli() -> None:
     code = "import sys, yhchat.cli; sys.exit(0 if 'granian' not in sys.modules else 1)"
     result = subprocess.run([sys.executable, "-c", code], check=False, capture_output=True)
 
@@ -79,94 +79,147 @@ def test_ssl_cert_without_key_is_rejected(capsys: pytest.CaptureFixture[str]) ->
     assert "同时提供" in capsys.readouterr().err
 
 
-def test_run_granian_passes_tls_options(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: dict[str, object] = {}
+def test_granian_command_defaults() -> None:
+    args = build_parser().parse_args(["serve", "--token", "tk", "--self-id", "bot-1"])
 
-    class FakeServer:
-        def __init__(self, app: object, **kwargs: object) -> None:
-            captured["app"] = app
-            captured.update(kwargs)
+    command = granian_command(args)
 
-        async def serve(self) -> None:
-            captured["served"] = True
+    assert command[:3] == [sys.executable, "-m", "granian"]
+    assert "--factory" in command
+    assert command[command.index("--factory") + 1] == "yhchat.server.app:create_app"
+    assert command[command.index("--http") + 1] == "auto"
+    assert command[command.index("--loop") + 1] == "auto"
+    assert "--reload" not in command
 
-    monkeypatch.setattr("granian.server.embed.Server", FakeServer)
 
-    asyncio.run(
-        run_granian(
-            "app",
-            host="0.0.0.0",
-            port=8443,
-            ssl_cert=Path("cert.pem"),
-            ssl_key=Path("key.pem"),
-            ssl_client_verify=True,
-        )
+def test_granian_command_maps_flags() -> None:
+    args = build_parser().parse_args(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--no-http2",
+            "--loop",
+            "asyncio",
+            "--reload",
+            "--ssl-cert",
+            "cert.pem",
+            "--ssl-key",
+            "key.pem",
+            "--ssl-key-password",
+            "pw",
+            "--ssl-ca",
+            "ca.pem",
+            "--ssl-client-verify",
+        ]
     )
 
-    assert captured["served"] is True
-    assert captured["ssl_cert"] == Path("cert.pem")
-    assert captured["ssl_key"] == Path("key.pem")
-    assert captured["ssl_client_verify"] is True
-    assert captured["port"] == 8443
+    command = granian_command(args)
+
+    assert command[command.index("--http") + 1] == "1"
+    assert command[command.index("--loop") + 1] == "asyncio"
+    assert "--reload" in command
+    assert command[command.index("--ssl-certificate") + 1] == "cert.pem"
+    assert command[command.index("--ssl-keyfile") + 1] == "key.pem"
+    assert command[command.index("--ssl-keyfile-password") + 1] == "pw"
+    assert command[command.index("--ssl-ca") + 1] == "ca.pem"
+    assert "--ssl-client-verify" in command
 
 
-def test_serve_passes_http2_and_tls_to_granian(monkeypatch: pytest.MonkeyPatch) -> None:
-    started: dict[str, object] = {}
+def test_server_env_sets_config() -> None:
+    args = build_parser().parse_args(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--satori-token",
+            "satori-tk",
+            "--base-url",
+            "http://127.0.0.1:9",
+            "--no-trust-env",
+            "--no-session",
+        ]
+    )
 
-    async def fake_granian(app: object, *, host: str, port: int, http2: bool = True, **ssl: object) -> None:
-        started["granian"] = (host, port, http2)
+    env = server_env(args)
 
-    monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
+    assert env["YHCHAT_TOKEN"] == "tk"
+    assert env["YHCHAT_SELF_ID"] == "bot-1"
+    assert env["YHCHAT_SATORI_TOKEN"] == "satori-tk"
+    assert env["YHCHAT_BASE_URL"] == "http://127.0.0.1:9"
+    assert env["YHCHAT_TRUST_ENV"] == "0"
+    assert "YHCHAT_SESSION_FILE" not in env
 
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-trust-env", "--no-session"])
+
+def test_server_env_enables_session_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("YHCHAT_SESSION_FILE", raising=False)
+    args = build_parser().parse_args(["serve", "--token", "tk", "--self-id", "bot-1"])
+
+    env = server_env(args)
+
+    assert env["YHCHAT_SESSION_FILE"].endswith("session.json")
+
+
+def test_serve_spawns_granian_subprocess(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakePopen:
+        def __init__(self, command: list[str], env: dict[str, str]) -> None:
+            captured["command"] = command
+            captured["env"] = env
+
+        def poll(self) -> int:
+            return 0
+
+        def wait(self) -> int:
+            return 0
+
+        def send_signal(self, signum: int) -> None:
+            captured["signal"] = signum
+
+    monkeypatch.setattr("yhchat.cli.subprocess.Popen", FakePopen)
+
+    code = main(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--port",
+            "5299",
+            "--no-session",
+            "--no-trust-env",
+        ]
+    )
 
     assert code == 0
-    assert started["granian"] == ("127.0.0.1", 5140, True)
+    command = captured["command"]
+    assert command[command.index("--port") + 1] == "5299"
+    assert captured["env"]["YHCHAT_TOKEN"] == "tk"
+    assert captured["env"]["YHCHAT_TRUST_ENV"] == "0"
 
 
-def test_granian_http2_can_be_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
-    started: dict[str, object] = {}
+def test_reload_requires_watchfiles(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    import importlib.util
 
-    async def fake_granian(app: object, *, host: str, port: int, http2: bool = True, **ssl: object) -> None:
-        started["granian"] = (host, port, http2)
+    real_find_spec = importlib.util.find_spec
 
-    monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
+    def fake_find_spec(name: str, package: str | None = None) -> object:
+        if name == "watchfiles":
+            return None
+        return real_find_spec(name, package)
 
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-http2", "--no-trust-env", "--no-session"])
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
 
-    assert code == 0
-    assert started["granian"] == ("127.0.0.1", 5140, False)
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--reload", "--no-session"])
 
-
-def test_loop_asyncio_uses_default_loop(monkeypatch: pytest.MonkeyPatch) -> None:
-    seen: dict[str, str] = {}
-
-    async def fake_serve(args: Any) -> int:
-        seen["loop"] = type(asyncio.get_running_loop()).__name__
-        return 0
-
-    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
-
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "asyncio", "--no-session"])
-
-    assert code == 0
-    assert "RLoop" not in seen["loop"]
-
-
-def test_loop_rloop_runs_on_rloop(monkeypatch: pytest.MonkeyPatch) -> None:
-    pytest.importorskip("rloop")
-    seen: dict[str, str] = {}
-
-    async def fake_serve(args: Any) -> int:
-        seen["loop"] = type(asyncio.get_running_loop()).__name__
-        return 0
-
-    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
-
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "rloop", "--no-session"])
-
-    assert code == 0
-    assert seen["loop"] == "RLoop"
+    assert code == 2
+    assert "watchfiles" in capsys.readouterr().err
 
 
 def test_loop_rloop_reports_missing_dependency(
@@ -187,19 +240,3 @@ def test_loop_rloop_reports_missing_dependency(
 
     assert code == 2
     assert "rloop" in capsys.readouterr().err
-
-
-def test_loop_auto_uses_rloop_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
-    pytest.importorskip("rloop")
-    seen: dict[str, str] = {}
-
-    async def fake_serve(args: Any) -> int:
-        seen["loop"] = type(asyncio.get_running_loop()).__name__
-        return 0
-
-    monkeypatch.setattr("yhchat.cli._serve", fake_serve)
-
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-session"])
-
-    assert code == 0
-    assert seen["loop"] == "RLoop"

@@ -215,29 +215,32 @@ wire 形状已用参考实现 `satori-python-client`（1.3.7）的 `Ready/Event/
 
 ## HTTP 服务与 CLI
 
-`yhchat serve` 默认用 **Granian** 跑 ASGI（HTTP/2 默认开启 + WebSocket），事件循环默认
-`auto`（装了 `rloop` 就用 rloop，否则退回 asyncio），同时提供健康检查、云湖回调接收和
-Satori 挂载（需要 `server` extra）：
+`yhchat serve` 是 **Granian CLI 的薄封装**：把参数翻译成 `YHCHAT_*` 环境变量，用
+`python -m granian --factory yhchat.server.app:create_app` 拉起子进程，父进程只做信号转发和
+退出码透传。不用 Granian 的嵌入模式，所以 `--reload` / `--loop` 这些 CLI 功能都能直接用。
+需要 `server` extra：
 
 ```bash
 uv sync --extra server
 uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 5140
 
-uv run yhchat serve ... --no-http2          # 只留 HTTP/1.1
+uv run yhchat serve ... --no-http2          # --http 1，只留 HTTP/1.1
 uv run yhchat serve ... --loop asyncio      # 不用 rloop
-uv run yhchat serve ... --loop rloop        # 显式要求 rloop（缺依赖会退出码 2）
+uv run yhchat serve ... --loop rloop        # 显式要求 rloop（缺依赖退出码 2）
+uv run yhchat serve ... --reload            # 文件变更自动重启
 ```
 
-h2c（prior knowledge）与 TLS ALPN 都验证过，同一端口同时接受 HTTP/1.1；WebSocket 走
-HTTP/1.1 upgrade。`rloop` 是 Granian 的 Rust 事件循环实现，随 `server` extra 安装
-（Windows 上不可用，`--loop rloop` 会报缺依赖）。
+`--http2` 映射到 Granian 的 `--http auto`（**同时**支持 h2/h2c 与 HTTP/1.1，WebSocket 可用）；
+`--no-http2` 映射到 `--http 1`。不要用 Granian 的 `--http 2`：那是 HTTP/2 only，会禁用
+WebSocket，Satori 的 `/satori/v1/events` 会直接不可用。
+
+h2c（prior knowledge）与 TLS ALPN 都验证过。`rloop` 是 Granian 的 Rust 事件循环实现，随
+`server` extra 安装（Windows 上不可用，`--loop rloop` 会报缺依赖）。`server` extra 里的
+Granian 带 `reload` 依赖（watchfiles），所以 `--reload` 开箱可用；`--env-files` / `--pname`
+没在 `yhchat serve` 暴露，需要时直接跑 Granian CLI。
 
 性能上 Granian 的公开基准通常高于纯 Python 服务器（HTTP/2 尤其明显），但本项目主要耗时在
-等云湖 API，真实差距有限；默认选它主要是 h2 原生、嵌入 API 简单。要压测请以自己机器和流量为准。
-
-Granian 的 `dotenv` / `pname` / `reload` 是 **CLI 专属** extras，本项目用的是嵌入 `Server`，
-这些参数不会被消费，不需要装；需要热重载时请直接用 Granian CLI 配
-`yhchat.server.app:create_app`（见下）。
+等云湖 API，真实差距有限；默认选它主要是 h2 原生、进程边界清晰。要压测请以自己机器和流量为准。
 
 | 路由 | 说明 |
 | --- | --- |
@@ -250,6 +253,7 @@ Granian 的 `dotenv` / `pname` / `reload` 是 **CLI 专属** extras，本项目�
 | `POST /session/logout` | 退出登录并删除会话文件 |
 
 常用参数：`--http2` / `--no-http2`（默认开）、`--loop auto|asyncio|rloop`（默认 auto）、
+`--reload`（透传 Granian CLI）、
 `--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
 `--no-trust-env`（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
 
@@ -258,12 +262,12 @@ TLS：`--ssl-cert` + `--ssl-key`（必须成对）、`--ssl-key-password`、`--s
 
 ### 直接用 Granian CLI 跑
 
-不想用 `yhchat serve` 时，`create_app()` 会从 `YHCHAT_*` 环境变量构造应用，可直接交给
-Granian CLI（这样能用上 `--reload` / `--loop rloop` / `.env` 等 CLI 功能）：
+`yhchat serve` 内部就是这么跑的；如果你要 `.env`、进程名等 `yhchat serve` 没暴露的 CLI 功能，
+可以完全绕过它，`create_app()` 会从 `YHCHAT_*` 环境变量构造应用：
 
 ```bash
 YHCHAT_TOKEN="机器人 token" YHCHAT_SELF_ID="机器人 ID" \
-  granian --interface asgi --factory yhchat.server.app:create_app --port 5140 --http 2
+  granian --interface asgi --factory yhchat.server.app:create_app --port 5140 --http auto
 ```
 
 支持的环境变量：`YHCHAT_TOKEN` / `YHCHAT_SELF_ID`（必填）、`YHCHAT_USER_TOKEN`、
