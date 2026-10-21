@@ -84,9 +84,14 @@ class YHChatClient:
 
     async def use_user_token(self, token: str) -> None:
         """登录后把 :attr:`v1` 切到新 token（会关掉旧的 v1 连接池）。"""
+        await self.clear_user_token()
+        self._user_token = token
+
+    async def clear_user_token(self) -> None:
+        """清掉用户 token（退出登录后调用）；之后访问 :attr:`v1` 会重新要求 token。"""
         if self._v1_http is not None:
             await self._v1_http.aclose()
-        self._user_token = token
+        self._user_token = None
         self._v1_http = None
         self._v1 = None
 

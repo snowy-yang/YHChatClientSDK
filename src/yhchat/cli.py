@@ -28,6 +28,19 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--webhook-path", default="/webhook", help="云湖回调路径（默认 /webhook）")
     serve.add_argument("--satori-path", default="/satori", help="Satori 挂载路径（默认 /satori）")
     serve.add_argument("--grpc-port", type=int, default=None, help="同时启动 gRPC 服务（默认不启动）")
+    serve.add_argument("--session-path", default="/session", help="会话路由前缀（默认 /session）")
+    serve.add_argument(
+        "--session-file",
+        type=Path,
+        default=None,
+        help="登录会话落盘路径（默认 $XDG_CONFIG_HOME/yhchat/session.json，权限 0600）",
+    )
+    serve.add_argument("--no-session", action="store_true", help="不启用登录会话保存")
+    serve.add_argument(
+        "--session-token",
+        default=None,
+        help="会话接口的 Bearer token；公网部署务必设置（默认不鉴权，只应监听 127.0.0.1）",
+    )
     serve.add_argument("--no-http2", action="store_true", help="只启用 HTTP/1.1")
     serve.add_argument(
         "--no-trust-env",
@@ -63,6 +76,12 @@ async def _serve(args: argparse.Namespace) -> int:
         print("--ssl-cert 与 --ssl-key 必须同时提供", file=sys.stderr)
         return 2
 
+    session_store = None
+    if not args.no_session:
+        from .server.sessions import SessionStore, default_session_path
+
+        session_store = SessionStore(args.session_file or default_session_path())
+
     client_kwargs: dict[str, Any] = {"http2": not args.no_http2, "trust_env": not args.no_trust_env}
     if args.base_url:
         client_kwargs["base_url"] = args.base_url
@@ -74,6 +93,9 @@ async def _serve(args: argparse.Namespace) -> int:
             platform=args.platform,
             webhook_path=args.webhook_path,
             satori_path=args.satori_path,
+            session_store=session_store,
+            session_path=args.session_path,
+            session_token=args.session_token,
         )
         grpc_server: Any = None
         if args.grpc_port:

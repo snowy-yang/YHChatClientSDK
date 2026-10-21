@@ -19,6 +19,10 @@ def test_serve_defaults() -> None:
     assert args.satori_path == "/satori"
     assert args.platform == "yhchat"
     assert args.grpc_port is None
+    assert args.session_path == "/session"
+    assert args.session_file is None
+    assert args.no_session is False
+    assert args.session_token is None
     assert args.no_http2 is False
     assert args.no_trust_env is False
 

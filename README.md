@@ -269,6 +269,9 @@ uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 51
 | `POST /webhook` | 云湖回调（`message.receive.normal` / `message.receive.instruction`）→ Satori 事件 → `EventBus` |
 | `/satori/v1/{action}` | Satori HTTP RPC |
 | `/satori/v1/events` | Satori WebSocket |
+| `GET /session` | 当前登录会话（`user_id` / `device_id` / `platform`，**不含 token**） |
+| `POST /session/login` | `{"email","password"}` 或 `{"mobile","captcha"}` 登录，落盘后供后续 v1 调用 |
+| `POST /session/logout` | 退出登录并删除会话文件 |
 
 常用参数：`--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
 `--grpc-port`（同时起 gRPC）、`--no-http2`（只留 HTTP/1.1）、`--no-trust-env`
@@ -276,6 +279,34 @@ uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 51
 
 TLS：`--ssl-cert` + `--ssl-key`（必须成对）、`--ssl-key-password`、`--ssl-ca` +
 `--ssl-client-verify`（mTLS）。参数直接传给 Granian；只给证书不给私钥会以退出码 2 拒绝启动。
+
+会话：`--session-file`（默认 `$XDG_CONFIG_HOME/yhchat/session.json`，权限 0600）、
+`--session-path`（默认 `/session`）、`--no-session`（不启用）、`--session-token`
+（会话接口的 Bearer token，公网部署务必设置）。
+
+### 登录会话保存（服务端）
+
+**SDK 不保存会话**：`client.auth.login_*` 只发请求、校验响应，返回内存里的 `LoginSession`。
+持久化在服务端做，`yhchat serve` 把它写成 0600 的 JSON 文件，重启时由 lifespan 自动恢复：
+
+```bash
+# 登录（token 只在服务端，响应里不会返回）
+curl -X POST http://127.0.0.1:5140/session/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "me@example.com", "password": "密码"}'
+
+# {"user_id":"450…","name":"…","device_id":"…","platform":"windows","created_at":1760…}
+
+curl http://127.0.0.1:5140/session            # 查当前会话（无 token 字段）
+curl -X POST http://127.0.0.1:5140/session/logout
+```
+
+- 会话文件内容：`user_id` / `token` / `device_id` / `platform` / `created_at`；原子写、0600、父目录 0700。
+- 重启后 `YHChatServer.restore_session()`（lifespan 调用）把 token 注入 `YHChatClient`，
+  后续 v1 请求直接可用。
+- 登录时 `device_id` 可传，不传随机生成；`platform` 默认 `windows`（WS 登录认这个值）。
+- 会话接口默认**不鉴权**，只适合监听 `127.0.0.1`；公网部署请加 `--session-token`，
+  客户端带 `Authorization: Bearer <token>`。
 
 已验证（真实进程 + 真实 socket）：HTTP/1.1 与 **h2c（HTTP/2 prior knowledge）** 的 `/health` 都是 200；
 `POST /webhook` → WS 收到 `op:0` 的 `message-created`，`sn` 递增、content 为 `<at id="u2"/>hi`。
@@ -335,7 +366,7 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 │   ├── api/bot.py        # /open-apis/v1 机器人接口
 │   ├── grpc/             # gRPC 门面：convert / client / server / _pb（生成）
 │   ├── satori/           # Satori v1 聊天子集：elements / models / bus / backend / server
-│   └── server/           # ASGI 组合：health / webhook / Satori 挂载
+│   └── server/           # ASGI 组合：health / webhook / Satori 挂载 / 登录会话保存
 ├── src/yhchat/cli.py     # yhchat serve
 ├── proto/yhchat/grpc/_pb/yhchat.proto
 ├── tools/gen_endpoints.py

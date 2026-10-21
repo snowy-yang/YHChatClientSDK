@@ -89,6 +89,10 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
   `client.auth`（`HttpTransport(auth="none")`）；生成器产出的 `client.v1.user.*` 版本会带用户 token，
   只适合已登录场景。`logout` 的 body 字段是 `device-id`（连字符），token 在请求头。
 - 登录后切账号用 `await client.use_user_token(token)`，它会关掉旧的 v1 连接池；不要手改 `_v1_http`。
+- **会话持久化归服务端**：SDK 侧（`client.auth`、`LoginSession`）只发请求/校验响应，不落盘；
+  落盘逻辑只在 `server/sessions.py`，`YHChatServer` 负责登录/退出路由和启动恢复。不要在 SDK 里加文件 IO。
+- `/session/*` 接口可选 `session_token` 鉴权；新增会话路由时必须调用 `_session_authorized`，
+  且响应里**不能出现 token**（用 `StoredSession.public()`）。
 - `/v1/user/info` 是 **GET + protobuf**（已实测），不是 web 文档写的 JSON；生成器会跳过所有
   `_*.py` 里登记过的手写路径，避免同一路径再生成一个 JSON 方法。
 - `group/list-member` 与 `msg/list-message` 的 `total` 服务端恒为 0，分页/判空不要依赖它。
