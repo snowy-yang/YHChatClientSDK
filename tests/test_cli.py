@@ -22,8 +22,8 @@ def test_serve_defaults() -> None:
     assert args.session_file is None
     assert args.no_session is False
     assert args.session_token is None
-    assert args.server == "uvicorn"
-    assert args.http2 is False
+    assert args.server == "granian"
+    assert args.http2 is None
     assert args.no_trust_env is False
 
 
@@ -121,7 +121,20 @@ def test_http2_requires_zttp(monkeypatch: pytest.MonkeyPatch, capsys: pytest.Cap
 
     monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
 
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--http2", "--no-trust-env", "--no-session"])
+    code = main(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--server",
+            "uvicorn",
+            "--http2",
+            "--no-trust-env",
+            "--no-session",
+        ]
+    )
 
     assert code == 2
     assert "zttp" in capsys.readouterr().err
@@ -135,27 +148,40 @@ def test_http2_passes_through_to_uvicorn_runner(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)
 
-    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--http2", "--no-trust-env", "--no-session"])
+    code = main(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--server",
+            "uvicorn",
+            "--http2",
+            "--no-trust-env",
+            "--no-session",
+        ]
+    )
 
     assert code == 0
     assert started["uvicorn"] == ("127.0.0.1", 5140, True)
 
 
-def test_uvicorn_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_granian_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
     started: dict[str, object] = {}
 
-    async def fake_uvicorn(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
-        started["uvicorn"] = (host, port)
+    async def fake_granian(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
+        started["granian"] = (host, port, http2)
 
-    monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)
+    monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
 
     code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-trust-env", "--no-session"])
 
     assert code == 0
-    assert started["uvicorn"] == ("127.0.0.1", 5140)
+    assert started["granian"] == ("127.0.0.1", 5140, True)
 
 
-def test_granian_runner_receives_http2_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_granian_http2_can_be_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
     started: dict[str, object] = {}
 
     async def fake_granian(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
@@ -170,13 +196,11 @@ def test_granian_runner_receives_http2_flag(monkeypatch: pytest.MonkeyPatch) -> 
             "tk",
             "--self-id",
             "bot-1",
-            "--server",
-            "granian",
-            "--http2",
+            "--no-http2",
             "--no-trust-env",
             "--no-session",
         ]
     )
 
     assert code == 0
-    assert started["granian"] == ("127.0.0.1", 5140, True)
+    assert started["granian"] == ("127.0.0.1", 5140, False)

@@ -1,7 +1,7 @@
 """命令行入口：``yhchat serve``。
 
-默认用 uvicorn 跑 ASGI（HTTP/1.1 + WebSocket），``--http2`` 通过 uvicorn 的 zttp 协议
-或 ``--server granian`` 提供 HTTP/2（两者都支持 h2c）；另有 webhook 接收、Satori 挂载和登录会话保存。
+默认用 Granian 跑 ASGI（HTTP/2 + WebSocket），``--server uvicorn`` 可换成 uvicorn
+（h2 需 zttp）；另有 webhook 接收、Satori 挂载和登录会话保存。
 """
 
 import argparse
@@ -44,13 +44,20 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument(
         "--server",
         choices=("uvicorn", "granian"),
-        default="uvicorn",
-        help="ASGI 服务器（默认 uvicorn；需要 HTTP/2 时用 granian）",
+        default="granian",
+        help="ASGI 服务器（默认 granian；uvicorn 需 --http2 时自带 zttp）",
     )
     serve.add_argument(
         "--http2",
         action="store_true",
-        help="启用服务端 HTTP/2（uvicorn 用 zttp，granian 原生支持；都支持 h2c 与 TLS ALPN）",
+        default=None,
+        help="强制启用 HTTP/2（默认：granian 开、uvicorn 关）",
+    )
+    serve.add_argument(
+        "--no-http2",
+        dest="http2",
+        action="store_false",
+        help="关闭 HTTP/2（granian 默认是开的）",
     )
     serve.add_argument(
         "--no-trust-env",
@@ -92,7 +99,8 @@ async def _serve(args: argparse.Namespace) -> int:
 
         session_store = SessionStore(args.session_file or default_session_path())
 
-    if args.http2 and args.server == "uvicorn" and importlib.util.find_spec("zttp") is None:
+    http2 = args.http2 if args.http2 is not None else args.server == "granian"
+    if http2 and args.server == "uvicorn" and importlib.util.find_spec("zttp") is None:
         print("--http2 需要 zttp：uv sync --extra server", file=sys.stderr)
         return 2
 
@@ -117,7 +125,7 @@ async def _serve(args: argparse.Namespace) -> int:
                 app,
                 host=args.host,
                 port=args.port,
-                http2=args.http2,
+                http2=http2,
                 ssl_cert=args.ssl_cert,
                 ssl_key=args.ssl_key,
                 ssl_key_password=args.ssl_key_password,
@@ -129,7 +137,7 @@ async def _serve(args: argparse.Namespace) -> int:
                 app,
                 host=args.host,
                 port=args.port,
-                http2=args.http2,
+                http2=http2,
                 ssl_cert=args.ssl_cert,
                 ssl_key=args.ssl_key,
                 ssl_key_password=args.ssl_key_password,

@@ -215,23 +215,28 @@ wire 形状已用参考实现 `satori-python-client`（1.3.7）的 `Ready/Event/
 
 ## HTTP 服务与 CLI
 
-`yhchat serve` 默认用 **uvicorn** 跑 ASGI（HTTP/1.1 + WebSocket），同时提供健康检查、
+`yhchat serve` 默认用 **Granian** 跑 ASGI（HTTP/2 默认开启 + WebSocket），同时提供健康检查、
 云湖回调接收和 Satori 挂载（需要 `server` extra）：
 
 ```bash
 uv sync --extra server
 uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 5140
+
+uv run yhchat serve ... --no-http2                    # 只留 HTTP/1.1
+uv run yhchat serve ... --server uvicorn              # 换 uvicorn（默认关 h2）
+uv run yhchat serve ... --server uvicorn --http2      # uvicorn 开 h2（走 zttp）
 ```
 
-加 `--http2` 即启用服务端 HTTP/2（h2c 与 TLS ALPN 都验证过）：
+h2c（prior knowledge）与 TLS ALPN 都验证过；两个 runner 都同时接受 HTTP/1.1，WebSocket 仍走
+HTTP/1.1 upgrade。Granian 原生 h2，不依赖 `zttp`；uvicorn 0.54+ 的 h2 由 `zttp` 提供
+（`uvicorn --http zttp --http2`），`zttp` 已放进 `server` extra。
 
-```bash
-uv run yhchat serve ... --http2                       # uvicorn：走 zttp 实现
-uv run yhchat serve ... --server granian --http2      # 或 Granian 原生 h2
-```
+性能上 Granian 的公开基准通常高于 uvicorn（HTTP/2 尤其明显），但本项目主要耗时在等云湖 API，
+真实差距有限；默认选它主要是 h2 原生、嵌入 API 简单。要压测请以自己机器和流量为准。
 
-uvicorn 0.54+ 的 HTTP/2 由 `zttp` 协议提供（`uvicorn --http zttp --http2`），`zttp` 已放进
-`server` extra；Granian 不依赖 zttp。两者都同时接受 HTTP/1.1，WebSocket 仍走 HTTP/1.1 upgrade。
+Granian 的 `dotenv` / `pname` / `reload` / `rloop` 是 **CLI 专属** extras，本项目用的是嵌入
+`Server`，这些参数不会被消费，不需要装；需要热重载时请直接用 Granian CLI 配
+`yhchat.server.app:create_app`（见下）。
 
 | 路由 | 说明 |
 | --- | --- |
@@ -243,7 +248,8 @@ uvicorn 0.54+ 的 HTTP/2 由 `zttp` 协议提供（`uvicorn --http zttp --http2`
 | `POST /session/login` | `{"email","password"}` 或 `{"mobile","captcha"}` 登录，落盘后供后续 v1 调用 |
 | `POST /session/logout` | 退出登录并删除会话文件 |
 
-常用参数：`--server uvicorn|granian`（默认 uvicorn）、`--http2`（两个 runner 都支持）、
+常用参数：`--server granian|uvicorn`（默认 granian）、`--http2` / `--no-http2`
+（granian 默认开，uvicorn 默认关）、
 `--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
 `--no-trust-env`（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
 
@@ -266,8 +272,16 @@ YHCHAT_TOKEN="机器人 token" YHCHAT_SELF_ID="机器人 ID" \
 `YHCHAT_TRUST_ENV`（设 `0` 关闭代理环境变量）。
 
 应用带 lifespan：启动时恢复登录会话，退出时关闭 SDK 连接池。HTTP/2 用 uvicorn 时需要
-`--http zttp --http2`（`zttp` 已含在 `server` extra），或者换成 Granian；hypercorn 也能跑这个
-ASGI app，但 CLI 里没接。
+`--http zttp --http2`（`zttp` 已含在 `server` extra）；Granian 用 `--http 2`（或 CLI 默认）。
+hypercorn 也能跑这个 ASGI app，但 CLI 里没接。
+
+需要 `--reload` / 进程名 / `.env` 这些 Granian CLI 功能时，直接用官方 CLI 跑工厂：
+
+```bash
+granian --interface asgi --factory yhchat.server.app:create_app --port 5140 --reload
+```
+
+（`YHCHAT_*` 环境变量仍需设置；此时不经过 `yhchat serve`，会话/鉴权参数也全部来自环境变量。）
 
 会话：`--session-file`（默认 `$XDG_CONFIG_HOME/yhchat/session.json`，权限 0600）、
 `--session-path`（默认 `/session`）、`--no-session`（不启用）、`--session-token`
