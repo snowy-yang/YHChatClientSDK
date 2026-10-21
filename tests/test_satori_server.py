@@ -228,3 +228,12 @@ def test_bus_drops_oldest_when_full() -> None:
             assert (await queue.get()).type == "b"
 
     asyncio.run(scenario())
+
+
+async def test_login_get_with_empty_body(client: httpx.AsyncClient) -> None:
+    response = await client.post("/v1/login.get", headers=HEADERS)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload[0]["platform"] == "yhchat"
+    assert payload[0]["user"]["id"] == "bot-1"

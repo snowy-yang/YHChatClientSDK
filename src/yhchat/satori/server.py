@@ -8,6 +8,7 @@
 
 import asyncio
 import contextlib
+import json
 from typing import Any, cast
 
 from pydantic import BaseModel
@@ -167,6 +168,8 @@ class SatoriChatServer:
                 return await backend.user_get(_required(params, "user_id"))
             case "friend.list":
                 return await backend.friend_list(_optional_str(params, "next_token"))
+            case "login.get":
+                return [await backend.login()]
             case _:
                 raise SatoriUnsupportedError(f"未实现的动作: {action}")
 
@@ -177,8 +180,12 @@ class SatoriChatServer:
 
 
 async def _json_body(request: Request) -> dict[str, object]:
+    raw = await request.body()
+    if not raw.strip():
+        # login.get 这类动作没有参数，客户端可能直接发空 body
+        return {}
     try:
-        body: object = await request.json()
+        body: object = json.loads(raw)
     except ValueError as exc:
         raise ValueError("请求体不是合法 JSON") from exc
     if not isinstance(body, dict):
