@@ -1,9 +1,11 @@
 """HTTP/2 ASGI 服务：健康检查、云湖 webhook 接收、Satori 挂载、登录会话保存。"""
 
+import os
 import time
 from collections import OrderedDict
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, cast
 
 from starlette.applications import Starlette
@@ -17,6 +19,7 @@ from ..errors import APIError, TransportError
 from ..satori.backend import YHChatBackend
 from ..satori.bus import EventBus
 from ..satori.server import SatoriChatServer
+from ..transport import DEFAULT_BASE_URL
 from .sessions import SessionStore, StoredSession
 from .webhook import parse_webhook, to_satori_event
 
@@ -48,6 +51,7 @@ class YHChatServer:
         session_store: SessionStore | None = None,
         session_path: str = "/session",
         session_token: str | None = None,
+        close_client: bool = False,
     ) -> None:
         self._client = client
         self._backend = YHChatBackend(client, self_id=self_id, platform=platform)
@@ -59,6 +63,7 @@ class YHChatServer:
         self._sessions = session_store
         self._session_path = session_path
         self._session_token = session_token
+        self._close_client = close_client
 
     @property
     def backend(self) -> YHChatBackend:
@@ -99,9 +104,13 @@ class YHChatServer:
 
     @asynccontextmanager
     async def _lifespan(self, app: Starlette) -> AsyncGenerator[None]:
-        """启动时恢复会话，让重启后的服务直接带上用户 token。"""
+        """启动时恢复会话；``close_client=True`` 时退出顺带关掉 SDK 连接池。"""
         await self.restore_session()
-        yield
+        try:
+            yield
+        finally:
+            if self._close_client:
+                await self._client.aclose()
 
     async def restore_session(self) -> StoredSession | None:
         """把落盘的 token 注入 client；返回恢复的会话，没有则 ``None``。"""
@@ -246,3 +255,37 @@ def _not_enabled() -> Response:
 
 def _unauthorized() -> Response:
     return JSONResponse({"message": "会话接口需要 Authorization: Bearer <session_token>"}, status_code=401)
+
+
+def create_app() -> Starlette:
+    """从环境变量构造 ASGI 应用，供 ``uvicorn yhchat.server.app:create_app --factory`` 使用。
+
+    环境变量：``YHCHAT_TOKEN`` / ``YHCHAT_SELF_ID``（必填）、``YHCHAT_USER_TOKEN``、
+    ``YHCHAT_BASE_URL``、``YHCHAT_SATORI_TOKEN``、``YHCHAT_PLATFORM``、
+    ``YHCHAT_WEBHOOK_PATH``、``YHCHAT_SATORI_PATH``、``YHCHAT_SESSION_FILE``、
+    ``YHCHAT_SESSION_PATH``、``YHCHAT_SESSION_TOKEN``、``YHCHAT_TRUST_ENV``（``0`` 关闭）。
+    """
+    token = os.environ.get("YHCHAT_TOKEN")
+    self_id = os.environ.get("YHCHAT_SELF_ID")
+    if not token or not self_id:
+        raise RuntimeError("缺少环境变量 YHCHAT_TOKEN / YHCHAT_SELF_ID")
+    session_file = os.environ.get("YHCHAT_SESSION_FILE")
+    client = YHChatClient(
+        token,
+        user_token=os.environ.get("YHCHAT_USER_TOKEN") or None,
+        base_url=os.environ.get("YHCHAT_BASE_URL") or DEFAULT_BASE_URL,
+        trust_env=os.environ.get("YHCHAT_TRUST_ENV", "1") != "0",
+    )
+    server = YHChatServer(
+        client,
+        self_id=self_id,
+        satori_token=os.environ.get("YHCHAT_SATORI_TOKEN") or None,
+        platform=os.environ.get("YHCHAT_PLATFORM") or "yhchat",
+        webhook_path=os.environ.get("YHCHAT_WEBHOOK_PATH") or "/webhook",
+        satori_path=os.environ.get("YHCHAT_SATORI_PATH") or "/satori",
+        session_store=SessionStore(Path(session_file)) if session_file else None,
+        session_path=os.environ.get("YHCHAT_SESSION_PATH") or "/session",
+        session_token=os.environ.get("YHCHAT_SESSION_TOKEN") or None,
+        close_client=True,
+    )
+    return server.build_app()

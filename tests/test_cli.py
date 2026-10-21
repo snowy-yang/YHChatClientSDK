@@ -22,7 +22,8 @@ def test_serve_defaults() -> None:
     assert args.session_file is None
     assert args.no_session is False
     assert args.session_token is None
-    assert args.no_http2 is False
+    assert args.server == "uvicorn"
+    assert args.http2 is False
     assert args.no_trust_env is False
 
 
@@ -106,3 +107,51 @@ def test_run_granian_passes_tls_options(monkeypatch: pytest.MonkeyPatch) -> None
     assert captured["ssl_key"] == Path("key.pem")
     assert captured["ssl_client_verify"] is True
     assert captured["port"] == 8443
+
+
+def test_http2_requires_granian(capsys: pytest.CaptureFixture[str]) -> None:
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--http2", "--no-trust-env", "--no-session"])
+
+    assert code == 2
+    assert "granian" in capsys.readouterr().err
+
+
+def test_uvicorn_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
+    started: dict[str, object] = {}
+
+    async def fake_uvicorn(app: object, *, host: str, port: int, **ssl: object) -> None:
+        started["uvicorn"] = (host, port)
+
+    monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--no-trust-env", "--no-session"])
+
+    assert code == 0
+    assert started["uvicorn"] == ("127.0.0.1", 5140)
+
+
+def test_granian_runner_receives_http2_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    started: dict[str, object] = {}
+
+    async def fake_granian(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
+        started["granian"] = (host, port, http2)
+
+    monkeypatch.setattr("yhchat.cli.run_granian", fake_granian)
+
+    code = main(
+        [
+            "serve",
+            "--token",
+            "tk",
+            "--self-id",
+            "bot-1",
+            "--server",
+            "granian",
+            "--http2",
+            "--no-trust-env",
+            "--no-session",
+        ]
+    )
+
+    assert code == 0
+    assert started["granian"] == ("127.0.0.1", 5140, True)

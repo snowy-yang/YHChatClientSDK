@@ -26,7 +26,7 @@
 ```bash
 git clone https://github.com/snowy-yang/YHChatClientSDK.git
 cd YHChatClientSDK
-uv sync
+uv sync --all-extras   # 含 server extra（uvicorn / granian / starlette）
 ```
 
 ## 快速开始
@@ -215,12 +215,21 @@ wire 形状已用参考实现 `satori-python-client`（1.3.7）的 `Ready/Event/
 
 ## HTTP 服务与 CLI
 
-`yhchat serve` 用 Granian 跑 ASGI，同时提供健康检查、云湖回调接收和 Satori 挂载（需要 `server` extra）：
+`yhchat serve` 默认用 **uvicorn** 跑 ASGI（HTTP/1.1 + WebSocket），同时提供健康检查、
+云湖回调接收和 Satori 挂载（需要 `server` extra）：
 
 ```bash
 uv sync --extra server
 uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 5140
 ```
+
+需要服务端 HTTP/2 时换 Granian（`--http2` 同时支持 h2c 与 TLS ALPN）：
+
+```bash
+uv run yhchat serve ... --server granian --http2
+```
+
+uvicorn **不支持 HTTP/2**，`--http2` 配 uvicorn 会直接以退出码 2 拒绝启动。
 
 | 路由 | 说明 |
 | --- | --- |
@@ -232,12 +241,30 @@ uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 51
 | `POST /session/login` | `{"email","password"}` 或 `{"mobile","captcha"}` 登录，落盘后供后续 v1 调用 |
 | `POST /session/logout` | 退出登录并删除会话文件 |
 
-常用参数：`--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
-`--no-http2`（只留 HTTP/1.1）、`--no-trust-env`
-（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
+常用参数：`--server uvicorn|granian`（默认 uvicorn）、`--http2`（仅 granian）、
+`--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
+`--no-trust-env`（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
 
 TLS：`--ssl-cert` + `--ssl-key`（必须成对）、`--ssl-key-password`、`--ssl-ca` +
-`--ssl-client-verify`（mTLS）。参数直接传给 Granian；只给证书不给私钥会以退出码 2 拒绝启动。
+`--ssl-client-verify`（mTLS）。参数按当前服务器透传（uvicorn 的 `ssl_*` / granian 的 `ssl_*`）；
+只给证书不给私钥会以退出码 2 拒绝启动。
+
+### 直接用 uvicorn / hypercorn 跑
+
+不想用 CLI 时，`create_app()` 会从 `YHCHAT_*` 环境变量构造应用，可直接交给任意 ASGI 服务器：
+
+```bash
+YHCHAT_TOKEN="机器人 token" YHCHAT_SELF_ID="机器人 ID" \
+  uv run uvicorn yhchat.server.app:create_app --factory --port 5140
+```
+
+支持的环境变量：`YHCHAT_TOKEN` / `YHCHAT_SELF_ID`（必填）、`YHCHAT_USER_TOKEN`、
+`YHCHAT_BASE_URL`、`YHCHAT_SATORI_TOKEN`、`YHCHAT_PLATFORM`、`YHCHAT_WEBHOOK_PATH`、
+`YHCHAT_SATORI_PATH`、`YHCHAT_SESSION_FILE`、`YHCHAT_SESSION_PATH`、`YHCHAT_SESSION_TOKEN`、
+`YHCHAT_TRUST_ENV`（设 `0` 关闭代理环境变量）。
+
+应用带 lifespan：启动时恢复登录会话，退出时关闭 SDK 连接池。HTTP/2 需要支持 h2 的服务器
+（Granian 已适配；hypercorn 也能跑这个 ASGI app，但 CLI 里没接）。
 
 会话：`--session-file`（默认 `$XDG_CONFIG_HOME/yhchat/session.json`，权限 0600）、
 `--session-path`（默认 `/session`）、`--no-session`（不启用）、`--session-token`
@@ -301,7 +328,7 @@ IP 白名单或反向代理层校验。
 ## 开发
 
 ```bash
-uv sync                              # 同步 .venv（首次会装 Python 3.12）
+uv sync --all-extras                 # 同步 .venv（首次会装 Python 3.12）
 uv run ruff check .                  # lint
 uv run ruff format .                 # format
 uv run pyright                       # 类型检查（strict）

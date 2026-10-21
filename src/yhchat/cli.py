@@ -1,7 +1,7 @@
 """命令行入口：``yhchat serve``。
 
-HTTP 服务用 Granian 跑 ASGI（``http2`` 打开时同时接受 h2 与 h2c），
-另有 webhook 接收、Satori 挂载和登录会话保存。
+默认用 uvicorn 跑 ASGI（HTTP/1.1 + WebSocket），``--server granian --http2`` 可开
+HTTP/2（granian 同时支持 h2c）；另有 webhook 接收、Satori 挂载和登录会话保存。
 """
 
 import argparse
@@ -40,7 +40,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="会话接口的 Bearer token；公网部署务必设置（默认不鉴权，只应监听 127.0.0.1）",
     )
-    serve.add_argument("--no-http2", action="store_true", help="只启用 HTTP/1.1")
+    serve.add_argument(
+        "--server",
+        choices=("uvicorn", "granian"),
+        default="uvicorn",
+        help="ASGI 服务器（默认 uvicorn；需要 HTTP/2 时用 granian）",
+    )
+    serve.add_argument(
+        "--http2",
+        action="store_true",
+        help="启用服务端 HTTP/2（仅 --server granian；uvicorn 不支持 h2）",
+    )
     serve.add_argument(
         "--no-trust-env",
         action="store_true",
@@ -81,7 +91,11 @@ async def _serve(args: argparse.Namespace) -> int:
 
         session_store = SessionStore(args.session_file or default_session_path())
 
-    client_kwargs: dict[str, Any] = {"http2": not args.no_http2, "trust_env": not args.no_trust_env}
+    if args.http2 and args.server != "granian":
+        print("--http2 需要 --server granian：uvicorn 不支持 HTTP/2", file=sys.stderr)
+        return 2
+
+    client_kwargs: dict[str, Any] = {"trust_env": not args.no_trust_env}
     if args.base_url:
         client_kwargs["base_url"] = args.base_url
     async with YHChatClient(args.token, **client_kwargs) as client:
@@ -96,18 +110,61 @@ async def _serve(args: argparse.Namespace) -> int:
             session_path=args.session_path,
             session_token=args.session_token,
         )
-        await run_granian(
-            server.build_app(),
-            host=args.host,
-            port=args.port,
-            http2=not args.no_http2,
-            ssl_cert=args.ssl_cert,
-            ssl_key=args.ssl_key,
-            ssl_key_password=args.ssl_key_password,
-            ssl_ca=args.ssl_ca,
-            ssl_client_verify=args.ssl_client_verify,
-        )
+        app = server.build_app()
+        if args.server == "granian":
+            await run_granian(
+                app,
+                host=args.host,
+                port=args.port,
+                http2=args.http2,
+                ssl_cert=args.ssl_cert,
+                ssl_key=args.ssl_key,
+                ssl_key_password=args.ssl_key_password,
+                ssl_ca=args.ssl_ca,
+                ssl_client_verify=args.ssl_client_verify,
+            )
+        else:
+            await run_uvicorn(
+                app,
+                host=args.host,
+                port=args.port,
+                ssl_cert=args.ssl_cert,
+                ssl_key=args.ssl_key,
+                ssl_key_password=args.ssl_key_password,
+                ssl_ca=args.ssl_ca,
+                ssl_client_verify=args.ssl_client_verify,
+            )
     return 0
+
+
+async def run_uvicorn(
+    app: Any,
+    *,
+    host: str,
+    port: int,
+    ssl_cert: Path | None = None,
+    ssl_key: Path | None = None,
+    ssl_key_password: str | None = None,
+    ssl_ca: Path | None = None,
+    ssl_client_verify: bool = False,
+) -> None:
+    """用 uvicorn 跑 ASGI 应用（HTTP/1.1 + WebSocket；h2 请用 granian）。"""
+    import ssl
+
+    import uvicorn
+
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+        ssl_certfile=str(ssl_cert) if ssl_cert else None,
+        ssl_keyfile=str(ssl_key) if ssl_key else None,
+        ssl_keyfile_password=ssl_key_password,
+        ssl_ca_certs=str(ssl_ca) if ssl_ca else None,
+        ssl_cert_reqs=ssl.CERT_REQUIRED if ssl_client_verify else ssl.CERT_NONE,
+    )
+    await uvicorn.Server(config).serve()
 
 
 async def run_granian(

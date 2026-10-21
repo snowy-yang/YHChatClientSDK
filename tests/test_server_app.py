@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from yhchat import YHChatClient
-from yhchat.server.app import YHChatServer
+from yhchat.server.app import YHChatServer, create_app
 
 MESSAGE_EVENT: dict[str, Any] = {
     "header": {"eventId": "e1", "eventTime": 1700000000000, "eventType": "message.receive.normal"},
@@ -149,3 +149,26 @@ async def test_webhook_dedupes_by_event_id(server: YHChatServer, http: httpx.Asy
         event = await asyncio.wait_for(queue.get(), timeout=1)
         assert event.sn == 1
         assert queue.empty()
+
+
+async def test_create_app_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("YHCHAT_TOKEN", "bot-token")
+    monkeypatch.setenv("YHCHAT_SELF_ID", "bot-1")
+    monkeypatch.setenv("YHCHAT_TRUST_ENV", "0")
+    monkeypatch.delenv("YHCHAT_SESSION_FILE", raising=False)
+
+    app = create_app()
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as http:
+        response = await http.get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["satori"] is True
+
+
+def test_create_app_requires_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("YHCHAT_TOKEN", raising=False)
+    monkeypatch.delenv("YHCHAT_SELF_ID", raising=False)
+
+    with pytest.raises(RuntimeError, match="YHCHAT_TOKEN"):
+        create_app()

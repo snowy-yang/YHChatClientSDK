@@ -42,6 +42,14 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - **错误**：`APIError(code, message, endpoint=...)`；缺字段一律 `TransportError`，不要用 `KeyError`/`AssertionError`。
 - **消息记录**：发送/接收到的消息登记进 `MessageRegistry`（LRU，进程内），编辑/撤回据此补全会话信息。
 
+## 服务器与 CLI 约定
+
+- `yhchat serve` 默认 `--server uvicorn`（HTTP/1.1 + WS）；HTTP/2 只在 `--server granian --http2` 下提供，
+  uvicorn 不支持 h2，`--http2` + uvicorn 必须在启动前就拒绝（退出码 2），不要静默降级。
+- `create_app()`（`server/app.py`）从 `YHCHAT_*` 环境变量构造应用，供
+  `uvicorn yhchat.server.app:create_app --factory` 使用；`close_client=True` 保证 lifespan 退出时关连接池。
+- 新增 runner 时把 TLS 参数逐项译成对应库的 `ssl_*` 参数；不要在这里写业务逻辑。
+
 ## Satori 约定
 
 - `SatoriChatServer`（`satori/server.py`）只认 `SatoriBackend` 协议；云湖字段假设全部写在

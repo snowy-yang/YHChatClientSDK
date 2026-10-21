@@ -18,6 +18,7 @@ dependencies = [
 server = [
     "granian>=2.0",
     "starlette>=0.41",
+    "uvicorn>=0.34",
     "websockets>=13",
 ]
 [dependency-groups]
