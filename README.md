@@ -124,6 +124,9 @@ async with YHChatClient("机器人 token") as client:
   大小写敏感，所以默认 `windows`。
 - 登录响应只有 `data.token`，文档没给过期时间；SDK 不持久化 token，需要自己存。
 - 邮箱密码按文档示例**明文提交**，SDK 不做哈希。
+- 已用真实请求核对（不带任何账号）：邮箱/密码错误时返回 `{"code": -1, "msg": "密码错误"}`，
+  不区分账号是否存在，SDK 抛 `APIError(code=-1)`；`captcha()` 返回 `data.b64s`，
+  形如 `data:image/png;base64,...`。
 
 ### protobuf 端点
 
