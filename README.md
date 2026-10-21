@@ -223,13 +223,15 @@ uv sync --extra server
 uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 5140
 ```
 
-需要服务端 HTTP/2 时换 Granian（`--http2` 同时支持 h2c 与 TLS ALPN）：
+加 `--http2` 即启用服务端 HTTP/2（h2c 与 TLS ALPN 都验证过）：
 
 ```bash
-uv run yhchat serve ... --server granian --http2
+uv run yhchat serve ... --http2                       # uvicorn：走 zttp 实现
+uv run yhchat serve ... --server granian --http2      # 或 Granian 原生 h2
 ```
 
-uvicorn **不支持 HTTP/2**，`--http2` 配 uvicorn 会直接以退出码 2 拒绝启动。
+uvicorn 0.54+ 的 HTTP/2 由 `zttp` 协议提供（`uvicorn --http zttp --http2`），`zttp` 已放进
+`server` extra；Granian 不依赖 zttp。两者都同时接受 HTTP/1.1，WebSocket 仍走 HTTP/1.1 upgrade。
 
 | 路由 | 说明 |
 | --- | --- |
@@ -241,7 +243,7 @@ uvicorn **不支持 HTTP/2**，`--http2` 配 uvicorn 会直接以退出码 2 拒
 | `POST /session/login` | `{"email","password"}` 或 `{"mobile","captcha"}` 登录，落盘后供后续 v1 调用 |
 | `POST /session/logout` | 退出登录并删除会话文件 |
 
-常用参数：`--server uvicorn|granian`（默认 uvicorn）、`--http2`（仅 granian）、
+常用参数：`--server uvicorn|granian`（默认 uvicorn）、`--http2`（两个 runner 都支持）、
 `--satori-token`（不传则不鉴权）、`--webhook-path` / `--satori-path`（可改成云湖后台登记的回调路径）、
 `--no-trust-env`（环境变量里 `HTTP(S)_PROXY`/`NO_PROXY` 非法时用，否则 httpx 会在启动时抛 `InvalidURL`）。
 
@@ -263,8 +265,9 @@ YHCHAT_TOKEN="机器人 token" YHCHAT_SELF_ID="机器人 ID" \
 `YHCHAT_SATORI_PATH`、`YHCHAT_SESSION_FILE`、`YHCHAT_SESSION_PATH`、`YHCHAT_SESSION_TOKEN`、
 `YHCHAT_TRUST_ENV`（设 `0` 关闭代理环境变量）。
 
-应用带 lifespan：启动时恢复登录会话，退出时关闭 SDK 连接池。HTTP/2 需要支持 h2 的服务器
-（Granian 已适配；hypercorn 也能跑这个 ASGI app，但 CLI 里没接）。
+应用带 lifespan：启动时恢复登录会话，退出时关闭 SDK 连接池。HTTP/2 用 uvicorn 时需要
+`--http zttp --http2`（`zttp` 已含在 `server` extra），或者换成 Granian；hypercorn 也能跑这个
+ASGI app，但 CLI 里没接。
 
 会话：`--session-file`（默认 `$XDG_CONFIG_HOME/yhchat/session.json`，权限 0600）、
 `--session-path`（默认 `/session`）、`--no-session`（不启用）、`--session-token`

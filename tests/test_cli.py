@@ -109,17 +109,42 @@ def test_run_granian_passes_tls_options(monkeypatch: pytest.MonkeyPatch) -> None
     assert captured["port"] == 8443
 
 
-def test_http2_requires_granian(capsys: pytest.CaptureFixture[str]) -> None:
+def test_http2_requires_zttp(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    import importlib.util
+
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name: str, package: str | None = None) -> object:
+        if name == "zttp":
+            return None
+        return real_find_spec(name, package)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+
     code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--http2", "--no-trust-env", "--no-session"])
 
     assert code == 2
-    assert "granian" in capsys.readouterr().err
+    assert "zttp" in capsys.readouterr().err
+
+
+def test_http2_passes_through_to_uvicorn_runner(monkeypatch: pytest.MonkeyPatch) -> None:
+    started: dict[str, object] = {}
+
+    async def fake_uvicorn(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
+        started["uvicorn"] = (host, port, http2)
+
+    monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--http2", "--no-trust-env", "--no-session"])
+
+    assert code == 0
+    assert started["uvicorn"] == ("127.0.0.1", 5140, True)
 
 
 def test_uvicorn_is_default_runner(monkeypatch: pytest.MonkeyPatch) -> None:
     started: dict[str, object] = {}
 
-    async def fake_uvicorn(app: object, *, host: str, port: int, **ssl: object) -> None:
+    async def fake_uvicorn(app: object, *, host: str, port: int, http2: bool = False, **ssl: object) -> None:
         started["uvicorn"] = (host, port)
 
     monkeypatch.setattr("yhchat.cli.run_uvicorn", fake_uvicorn)

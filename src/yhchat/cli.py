@@ -1,11 +1,12 @@
 """命令行入口：``yhchat serve``。
 
-默认用 uvicorn 跑 ASGI（HTTP/1.1 + WebSocket），``--server granian --http2`` 可开
-HTTP/2（granian 同时支持 h2c）；另有 webhook 接收、Satori 挂载和登录会话保存。
+默认用 uvicorn 跑 ASGI（HTTP/1.1 + WebSocket），``--http2`` 通过 uvicorn 的 zttp 协议
+或 ``--server granian`` 提供 HTTP/2（两者都支持 h2c）；另有 webhook 接收、Satori 挂载和登录会话保存。
 """
 
 import argparse
 import asyncio
+import importlib.util
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -49,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument(
         "--http2",
         action="store_true",
-        help="启用服务端 HTTP/2（仅 --server granian；uvicorn 不支持 h2）",
+        help="启用服务端 HTTP/2（uvicorn 用 zttp，granian 原生支持；都支持 h2c 与 TLS ALPN）",
     )
     serve.add_argument(
         "--no-trust-env",
@@ -91,8 +92,8 @@ async def _serve(args: argparse.Namespace) -> int:
 
         session_store = SessionStore(args.session_file or default_session_path())
 
-    if args.http2 and args.server != "granian":
-        print("--http2 需要 --server granian：uvicorn 不支持 HTTP/2", file=sys.stderr)
+    if args.http2 and args.server == "uvicorn" and importlib.util.find_spec("zttp") is None:
+        print("--http2 需要 zttp：uv sync --extra server", file=sys.stderr)
         return 2
 
     client_kwargs: dict[str, Any] = {"trust_env": not args.no_trust_env}
@@ -128,6 +129,7 @@ async def _serve(args: argparse.Namespace) -> int:
                 app,
                 host=args.host,
                 port=args.port,
+                http2=args.http2,
                 ssl_cert=args.ssl_cert,
                 ssl_key=args.ssl_key,
                 ssl_key_password=args.ssl_key_password,
@@ -142,13 +144,14 @@ async def run_uvicorn(
     *,
     host: str,
     port: int,
+    http2: bool = False,
     ssl_cert: Path | None = None,
     ssl_key: Path | None = None,
     ssl_key_password: str | None = None,
     ssl_ca: Path | None = None,
     ssl_client_verify: bool = False,
 ) -> None:
-    """用 uvicorn 跑 ASGI 应用（HTTP/1.1 + WebSocket；h2 请用 granian）。"""
+    """用 uvicorn 跑 ASGI 应用；``http2=True`` 时走 zttp（h2c 与 TLS ALPN）。"""
     import ssl
 
     import uvicorn
@@ -158,6 +161,8 @@ async def run_uvicorn(
         host=host,
         port=port,
         log_level="info",
+        http="zttp" if http2 else "auto",
+        http2=http2,
         ssl_certfile=str(ssl_cert) if ssl_cert else None,
         ssl_keyfile=str(ssl_key) if ssl_key else None,
         ssl_keyfile_password=ssl_key_password,

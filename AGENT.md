@@ -44,8 +44,8 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 
 ## 服务器与 CLI 约定
 
-- `yhchat serve` 默认 `--server uvicorn`（HTTP/1.1 + WS）；HTTP/2 只在 `--server granian --http2` 下提供，
-  uvicorn 不支持 h2，`--http2` + uvicorn 必须在启动前就拒绝（退出码 2），不要静默降级。
+- `yhchat serve` 默认 `--server uvicorn`；`--http2` 两个 runner 都支持：uvicorn 走 `--http zttp --http2`
+  （依赖 `zttp`，已进 `server` extra，缺依赖时启动前报错退出），Granian 原生支持。不要删掉 h2c 兼容。
 - `create_app()`（`server/app.py`）从 `YHCHAT_*` 环境变量构造应用，供
   `uvicorn yhchat.server.app:create_app --factory` 使用；`close_client=True` 保证 lifespan 退出时关连接池。
 - 新增 runner 时把 TLS 参数逐项译成对应库的 `ssl_*` 参数；不要在这里写业务逻辑。

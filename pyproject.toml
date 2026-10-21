@@ -18,8 +18,9 @@ dependencies = [
 server = [
     "granian>=2.0",
     "starlette>=0.41",
-    "uvicorn>=0.34",
+    "uvicorn>=0.54",
     "websockets>=13",
+    "zttp>=0.0.34",  # uvicorn 的 HTTP/2（--http zttp --http2）
 ]
 [dependency-groups]
 dev = [
