@@ -7,15 +7,7 @@ from ._base import V1GroupAPI
 
 
 class WebUserAPI(V1GroupAPI):
-    """``web_user`` 组，共 4 个 JSON 端点。"""
-
-    async def info(self) -> dict[str, Any]:
-        """获取用户自身信息。
-
-        ``GET /v1/user/info``
-        返回原始 JSON 响应（未逐字段建模），见文档。
-        """
-        return await self._call("GET", "/v1/user/info")
+    """``web_user`` 组，共 3 个 JSON 端点。"""
 
     async def homepage(self, *, params: Mapping[str, Any] | None = None) -> dict[str, Any]:
         """获取用户主页信息。

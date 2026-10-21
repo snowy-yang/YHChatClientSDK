@@ -25,6 +25,7 @@ PROTO_ENDPOINTS: frozenset[str] = frozenset(
         "/v1/msg/recall-msg",
         "/v1/msg/recall-msg-batch",
         "/v1/msg/button-report",
+        "/v1/user/info",
         "/v1/user/get-user",
         "/v1/user/medal",
         "/v1/user/edit-nickname",
@@ -79,8 +80,10 @@ class ProtoGroupAPI:
     def __init__(self, http: HttpTransport) -> None:
         self._http = http
 
-    async def _call(self, path: str, message: Message, response_type: type[MessageT]) -> MessageT:
-        response = await self._http.request_pb("POST", path, message, response_type)
+    async def _call(
+        self, path: str, message: Message, response_type: type[MessageT], *, method: str = "POST"
+    ) -> MessageT:
+        response = await self._http.request_pb(method, path, message, response_type)
         status = cast("full_pb2.Status | None", getattr(response, "status", None))
         if status is not None and status.code != 1:
             raise APIError(status.code, status.msg, endpoint=path)
@@ -128,7 +131,11 @@ class MsgProtoAPI(ProtoGroupAPI):
 
 
 class UserProtoAPI(ProtoGroupAPI):
-    """``v1/user`` 的 protobuf 端点（4 个）。"""
+    """``v1/user`` 的 protobuf 端点（5 个）。"""
+
+    async def info(self) -> full_pb2.UserInfo:
+        """获取自身信息。``GET /v1/user/info``（实测响应是 protobuf，web 文档写的 JSON 不成立）"""
+        return await self._call("/v1/user/info", full_pb2.UserInfo(), full_pb2.UserInfo, method="GET")
 
     async def get_user(self, request: full_pb2.GetUserRequest) -> full_pb2.GetUserResponse:
         """获取指定用户信息。``POST /v1/user/get-user``"""

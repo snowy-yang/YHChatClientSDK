@@ -182,6 +182,26 @@ message ProfileInfo {
   string address = 7;
 }
 
+// 获取用户自身信息（GET /v1/user/info，响应是 protobuf，不是 JSON）
+message UserInfo {
+  Status status = 1;
+  Data data = 2;
+  message Data {
+    string id = 1; // 用户 ID
+    string name = 2; // 用户名
+    int32 field3 = 3; // 文档标注"不知道干啥的"，保留编号
+    string avatar_url = 4; // 头像 URL
+    int64 avatar_id = 5; // 头像 ID
+    string phone = 6; // 手机号
+    string email = 7; // 邮箱
+    double coin = 8; // 金币数
+    bool is_vip = 9; // 是否 VIP
+    int64 vip_expired_timestamp = 10; // VIP 过期时间
+    VipStatus vip_status = 11; // VIP 状态
+    string invitation_code = 12; // 邀请码
+  }
+}
+
 message GetUserRequest {
   string id = 2;
 }

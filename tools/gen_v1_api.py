@@ -63,6 +63,7 @@ def parse_docs(root: Path) -> tuple[list[Endpoint], list[Skipped]]:
     endpoints: list[Endpoint] = []
     skipped: list[Skipped] = []
     seen: set[tuple[str, str]] = set()
+    handwritten = handwritten_paths()
     for file in files:
         relative = file.relative_to(root).as_posix()
         if file.name in {"README.md", "full_proto.md", "url_scheme.md"}:
@@ -70,6 +71,8 @@ def parse_docs(root: Path) -> tuple[list[Endpoint], list[Skipped]]:
         for endpoint in _parse_file(file, relative):
             key = (endpoint.method, endpoint.path)
             reason = _skip_reason(endpoint)
+            if not reason and endpoint.path in handwritten:
+                reason = "已有手写实现"
             if not reason and key in seen:
                 reason = "与 v1 文档重复"
             if reason:

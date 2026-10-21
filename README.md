@@ -113,7 +113,8 @@ async with YHChatClient("机器人 token") as client:
     session = await client.auth.login_with_email("me@example.com", "密码")
     await client.use_user_token(session.token)
 
-    me = await client.v1.web_user.info()      # 现在用的是用户 token
+    me = await client.v1.proto.user.info()    # protobuf，GET /v1/user/info
+    print(me.data.name)
     await client.auth.logout(session)         # 请求体是 device-id，token 走请求头
 ```
 
@@ -124,9 +125,11 @@ async with YHChatClient("机器人 token") as client:
   大小写敏感，所以默认 `windows`。
 - 登录响应只有 `data.token`，文档没给过期时间；SDK 不持久化 token，需要自己存。
 - 邮箱密码按文档示例**明文提交**，SDK 不做哈希。
-- 已用真实请求核对（不带任何账号）：邮箱/密码错误时返回 `{"code": -1, "msg": "密码错误"}`，
-  不区分账号是否存在，SDK 抛 `APIError(code=-1)`；`captcha()` 返回 `data.b64s`，
+- 已用真实账号核对：邮箱登录返回 36 字符 token；密码错误返回 `{"code": -1, "msg": "密码错误"}`
+  （不区分账号是否存在，SDK 抛 `APIError(code=-1)`）；`captcha()` 返回 `data.b64s`，
   形如 `data:image/png;base64,...`。
+- 实测中脚本异常退出过两次，留下了两个未 `logout` 的设备会话；token 按次签发，事后无法替它们退出，
+  需要在云湖 App 的「登录设备」里手动下线。
 
 ### protobuf 端点
 
@@ -282,6 +285,24 @@ TLS：`--ssl-cert` + `--ssl-key`（必须成对）、`--ssl-key-password`、`--s
 `{"duplicated": true}` 且不再推事件。**未做**：回调签名校验——云湖文档没有签名机制，公网部署请自行加
 IP 白名单或反向代理层校验。
 
+## 真实账号实测记录
+
+用真实账号跑过一次登录 + 只读端点（未发消息、未改任何数据，登录会话已 `logout`）：
+
+| 端点 | 结果 |
+| --- | --- |
+| `POST /v1/user/email-login` | 成功，`data.token` 为 36 字符；错误密码 `code=-1`/`密码错误` |
+| `GET /v1/user/info` | 返回 **protobuf**；`id/name/avatarUrl/phone/email/coin/isVip/vipStatus/invitationCode` 全部能解析 |
+| `POST /v1/friend/address-book-list` | 成功，返回 3 个分组（`chat_type` 1/2/3），条目数 7/11/5 |
+| `POST /v1/conversation/list` | 成功，21 条会话，类型分布 user=6 / group=11 / bot=4 |
+| `POST /v1/group/info` | 成功，`headcount`、`admin`、`introduction` 正常 |
+| `POST /v1/group/list-member` | 成功，成员 `permission_level` 100/2/0；**`total` 恒为 0**（服务端不填） |
+| `POST /v1/user/get-user` | 成功（token 可以随便填，与文档一致） |
+| `POST /v1/msg/list-message` | 成功，字段名与 `full.proto` 一致；`direction=left`、`content_type=1`、`msg_seq` 新→旧；**`total` 恒为 0** |
+
+未实测：发消息/撤回/编辑等**写操作**（避免动到真实数据）、WS 登录的 platform 白名单、需要机器人 token 的
+`open-apis` 与 `bot/*` 端点、上传接口。
+
 ## 错误处理
 
 - `APIError`：云湖返回 `code != 1` 或 HTTP 4xx/5xx，带 `code` / `message` / `endpoint`。
@@ -328,9 +349,9 @@ uv run python tools/gen_proto.py     # 重新生成 gRPC 代码（proto 改动�
 
 ## 已知不一致
 
-- `/v1/user/info`：`v1/user.md` 写的是 **protobuf**（`UserInfo`），`web/v1/user.md` 写的是
-  **JSON**，同一路径两种格式。SDK 目前实现的是 JSON 版本（`client.v1.web_user.info`），
-  protobuf 侧的 `UserInfo` 消息还没加进 `full.proto`，等有 token 实测后再定。
+- `/v1/user/info`：`v1/user.md` 写 **protobuf**、`web/v1/user.md` 写 **JSON**。**已实测**：真实请求返回
+  `200 application/x-protobuf`（171 字节），web 文档的 JSON 版本不成立。SDK 现在只有 protobuf 实现
+  `client.v1.proto.user.info()`，生成器不再为这个路径产出 JSON 方法（`web_user.info` 已移除）。
 
 - 文档把按钮 `actionType` 的 1/2 注释写反了；本 SDK 按示例语义处理：**1=跳转（带 url）、2=复制（带 value）**。
 - `/bot/messages` 文档用 `message-id` 查询参数，旧版实现用的是 `msg-id`，本 SDK 按文档实现，待用真实 token 验证。

@@ -89,6 +89,9 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
   `client.auth`（`HttpTransport(auth="none")`）；生成器产出的 `client.v1.user.*` 版本会带用户 token，
   只适合已登录场景。`logout` 的 body 字段是 `device-id`（连字符），token 在请求头。
 - 登录后切账号用 `await client.use_user_token(token)`，它会关掉旧的 v1 连接池；不要手改 `_v1_http`。
+- `/v1/user/info` 是 **GET + protobuf**（已实测），不是 web 文档写的 JSON；生成器会跳过所有
+  `_*.py` 里登记过的手写路径，避免同一路径再生成一个 JSON 方法。
+- `group/list-member` 与 `msg/list-message` 的 `total` 服务端恒为 0，分页/判空不要依赖它。
 - 错误处理：响应消息体的 `Status.code != 1` 抛 `APIError`（带 `endpoint`），HTTP 4xx/5xx 抛 `TransportError`。
 - 测试用 respx 断言「请求字节能被反序列化回原消息」+「响应字节能被解析成嵌套结构」，不要只断言路径。
 

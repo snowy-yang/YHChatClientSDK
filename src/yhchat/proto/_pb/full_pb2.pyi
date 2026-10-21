@@ -321,6 +321,41 @@ class ProfileInfo(_message.Message):
     address: str
     def __init__(self, last_active_time: _Optional[str] = ..., introduction: _Optional[str] = ..., gender: _Optional[int] = ..., birthday_timestamp: _Optional[int] = ..., city: _Optional[str] = ..., district: _Optional[str] = ..., address: _Optional[str] = ...) -> None: ...
 
+class UserInfo(_message.Message):
+    __slots__ = ("status", "data")
+    class Data(_message.Message):
+        __slots__ = ("id", "name", "field3", "avatar_url", "avatar_id", "phone", "email", "coin", "is_vip", "vip_expired_timestamp", "vip_status", "invitation_code")
+        ID_FIELD_NUMBER: _ClassVar[int]
+        NAME_FIELD_NUMBER: _ClassVar[int]
+        FIELD3_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_URL_FIELD_NUMBER: _ClassVar[int]
+        AVATAR_ID_FIELD_NUMBER: _ClassVar[int]
+        PHONE_FIELD_NUMBER: _ClassVar[int]
+        EMAIL_FIELD_NUMBER: _ClassVar[int]
+        COIN_FIELD_NUMBER: _ClassVar[int]
+        IS_VIP_FIELD_NUMBER: _ClassVar[int]
+        VIP_EXPIRED_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+        VIP_STATUS_FIELD_NUMBER: _ClassVar[int]
+        INVITATION_CODE_FIELD_NUMBER: _ClassVar[int]
+        id: str
+        name: str
+        field3: int
+        avatar_url: str
+        avatar_id: int
+        phone: str
+        email: str
+        coin: float
+        is_vip: bool
+        vip_expired_timestamp: int
+        vip_status: VipStatus
+        invitation_code: str
+        def __init__(self, id: _Optional[str] = ..., name: _Optional[str] = ..., field3: _Optional[int] = ..., avatar_url: _Optional[str] = ..., avatar_id: _Optional[int] = ..., phone: _Optional[str] = ..., email: _Optional[str] = ..., coin: _Optional[float] = ..., is_vip: _Optional[bool] = ..., vip_expired_timestamp: _Optional[int] = ..., vip_status: _Optional[_Union[VipStatus, str]] = ..., invitation_code: _Optional[str] = ...) -> None: ...
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    status: Status
+    data: UserInfo.Data
+    def __init__(self, status: _Optional[_Union[Status, _Mapping]] = ..., data: _Optional[_Union[UserInfo.Data, _Mapping]] = ...) -> None: ...
+
 class GetUserRequest(_message.Message):
     __slots__ = ("id",)
     ID_FIELD_NUMBER: _ClassVar[int]

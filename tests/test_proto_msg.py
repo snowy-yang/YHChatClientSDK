@@ -345,3 +345,23 @@ async def test_request_list_parses_requests(client: YHChatClient) -> None:
 
         assert response.pending == 1
         assert response.requests[0].request_id == 7
+
+
+async def test_user_info_is_protobuf_over_get(client: YHChatClient) -> None:
+    payload = full_pb2.UserInfo(
+        status=full_pb2.Status(code=1, msg="success"),
+        data=full_pb2.UserInfo.Data(id="u1", name="小明", is_vip=True, coin=1.5),
+    )
+    with respx.mock(base_url=BASE_URL) as mock:
+        route = mock.get("/v1/user/info").mock(
+            return_value=httpx.Response(200, content=payload.SerializeToString())
+        )
+
+        info = await client.v1.proto.user.info()
+
+        assert route.calls.last.request.method == "GET"
+        assert route.calls.last.request.headers["token"] == "user-token"
+        assert info.data.id == "u1"
+        assert info.data.name == "小明"
+        assert info.data.is_vip is True
+        assert info.data.coin == 1.5
