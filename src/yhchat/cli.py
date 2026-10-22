@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     serve.add_argument(
         "--loop",
-        choices=("auto", "asyncio", "rloop"),
+        choices=("auto", "asyncio", "rloop", "winloop"),
         default="auto",
         help="事件循环（默认 auto；直接传给 Granian CLI）",
     )
@@ -92,8 +92,8 @@ def _serve(args: argparse.Namespace) -> int:
     if args.reload and importlib.util.find_spec("watchfiles") is None:
         print("--reload 需要 watchfiles：uv sync --extra server", file=sys.stderr)
         return 2
-    if args.loop == "rloop" and importlib.util.find_spec("rloop") is None:
-        print("--loop rloop 需要 rloop：uv sync --extra server", file=sys.stderr)
+    if args.loop in {"rloop", "winloop"} and importlib.util.find_spec(args.loop) is None:
+        print(f"--loop {args.loop} 需要安装 {args.loop}：uv sync --extra server", file=sys.stderr)
         return 2
 
     try:

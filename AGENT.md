@@ -50,7 +50,8 @@ uv run pytest -q        # respx 模拟 HTTP，不碰真实接口
 - `--http2` 必须映射成 Granian 的 `--http auto`（h2 + HTTP/1.1，WS 可用），`--no-http2` 映射
   `--http 1`。不要映射成 `--http 2`：HTTP/2 only 会禁用 WebSocket。
 - 父进程转发 SIGINT/SIGTERM/SIGHUP 给子进程，并透传退出码；子进程退出后不能留孤儿 worker。
-- rloop 由 Granian CLI 的 `--loop` 负责，Python 侧不需要也没必要再碰 self-pipe。
+- 事件循环由 Granian CLI 的 `--loop` 负责：Linux/macOS 用 `rloop`，Windows 用 `winloop`
+  （uvloop 不支持 Windows；rloop 的依赖 marker 也排除了 win32）。Python 侧不需要再碰 self-pipe。
 - `create_app()`（`server/app.py`）从 `YHCHAT_*` 环境变量构造应用，供
   `granian --interface asgi --factory yhchat.server.app:create_app` 使用；`close_client=True`
   保证 lifespan 退出时关连接池。

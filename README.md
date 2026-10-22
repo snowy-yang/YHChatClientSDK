@@ -227,6 +227,7 @@ uv run yhchat serve --token "机器人 token" --self-id "机器人 ID" --port 51
 uv run yhchat serve ... --no-http2          # --http 1，只留 HTTP/1.1
 uv run yhchat serve ... --loop asyncio      # 不用 rloop
 uv run yhchat serve ... --loop rloop        # 显式要求 rloop（缺依赖退出码 2）
+uv run yhchat serve ... --loop winloop      # Windows：winloop（uvloop/rloop 都不支持 Windows）
 uv run yhchat serve ... --reload            # 文件变更自动重启
 ```
 
@@ -234,8 +235,10 @@ uv run yhchat serve ... --reload            # 文件变更自动重启
 `--no-http2` 映射到 `--http 1`。不要用 Granian 的 `--http 2`：那是 HTTP/2 only，会禁用
 WebSocket，Satori 的 `/satori/v1/events` 会直接不可用。
 
-h2c（prior knowledge）与 TLS ALPN 都验证过。`rloop` 是 Granian 的 Rust 事件循环实现，随
-`server` extra 安装（Windows 上不可用，`--loop rloop` 会报缺依赖）。`server` extra 里的
+h2c（prior knowledge）与 TLS ALPN 都验证过。事件循环按平台选：Linux/macOS 用 `rloop`
+（Rust 实现），Windows 用 `winloop`（uvloop 的 Windows 兼容实现；uvloop 本身只支持 POSIX）。
+两者都由 `server` extra 按平台标记安装；`--loop auto` 会挑可用的那个，缺依赖时显式指定会以
+退出码 2 报错。`server` extra 里的
 Granian 带 `reload` 依赖（watchfiles），所以 `--reload` 开箱可用；`--env-files` / `--pname`
 没在 `yhchat serve` 暴露，需要时直接跑 Granian CLI。
 

@@ -18,6 +18,7 @@ dependencies = [
 server = [
     "granian[reload]>=2.0",
     "rloop>=0.1; sys_platform != 'win32'",  # Granian 的 Rust 事件循环实现
+    "winloop>=0.2.2; sys_platform == 'win32'",  # Windows 上的 uvloop 兼容实现
     "starlette>=0.41",
     "websockets>=13",
 ]

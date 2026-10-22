@@ -240,3 +240,23 @@ def test_loop_rloop_reports_missing_dependency(
 
     assert code == 2
     assert "rloop" in capsys.readouterr().err
+
+
+def test_loop_winloop_reports_missing_dependency(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import importlib.util
+
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name: str, package: str | None = None) -> object:
+        if name == "winloop":
+            return None
+        return real_find_spec(name, package)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+
+    code = main(["serve", "--token", "tk", "--self-id", "bot-1", "--loop", "winloop", "--no-session"])
+
+    assert code == 2
+    assert "winloop" in capsys.readouterr().err
